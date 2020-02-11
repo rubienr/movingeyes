@@ -1,32 +1,16 @@
-# Prerequisites
-*.d
+CMakeListsPrivate.txt
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+cmake-*
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+install_manifest.txt
+CTestTestfile.cmake
 
-# Precompiled Headers
-*.gch
-*.pch
+.pio
+.pioenvs
+.piolibdeps
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+.idea
