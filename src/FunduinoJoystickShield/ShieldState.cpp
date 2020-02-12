@@ -48,14 +48,29 @@ bool ShieldState::operator!=(const Funduino::ShieldState &other) const
     return !this->operator==(other);
 }
 
+//--------------------------------------------------------------------------------------------------
+
+ShieldState &ShieldState::operator=(const ShieldState &rhs)
+{
+    if(this == &rhs) return *this;
+
+    keys = rhs.keys;
+
+    joystick.x.update(rhs.joystick.x.value);
+    joystick.y.update(rhs.joystick.y.value);
+
+    joystick.z = rhs.joystick.z;
+
+    return *this;
+}
 
 //--------------------------------------------------------------------------------------------------
 
-void ShieldStateHelper::print(const ShieldState &state)
+void ShieldStateHelper::print(const ShieldState &state, const String &prefix)
 {
-    String s("ShieldStateHelper::print:");
+    String s{ prefix };
 
-    s.concat(" A=");
+    s.concat("A=");
     s.concat(uint8FromKeyState(state.keys.a));
     s.concat(" B=");
     s.concat(uint8FromKeyState(state.keys.b));
@@ -89,7 +104,15 @@ void ShieldStateHelper::print(const ShieldState &state)
     s.concat(state.joystick.y.value);
     s.concat(")");
 
-    Serial.println(s.c_str());
+    Serial.print(s.c_str());
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void ShieldStateHelper::println(const ShieldState &state, const String &prefix)
+{
+    print(state, prefix);
+    Serial.println();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -111,28 +134,21 @@ void Potentiometer::update(const uint16_t &new_value)
 
 //--------------------------------------------------------------------------------------------------
 
-Potentiometer &Potentiometer::operator=(const Potentiometer &rhs)
-{
-    if(this == &rhs)
-    {
-        return *this;
-    }
-
-    value = rhs.value;
-    min = min(min, rhs.min);
-    max = max(max, rhs.max);
-    // center is skipped
-
-    return *this;
-}
-
-//--------------------------------------------------------------------------------------------------
-
 float Potentiometer::getNormalizedValue() const
 {
     uint16_t range = max - min;
 
     return static_cast<float>(value) / range;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Potentiometer::copyFrom(const Potentiometer &other)
+{
+    min = other.min;
+    center = other.center;
+    max = other.max;
+    value = other.value;
 }
 
 } // namespace Funduino

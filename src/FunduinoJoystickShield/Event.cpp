@@ -5,28 +5,34 @@ namespace Funduino
 
 //--------------------------------------------------------------------------------------------------
 
-void Funduino::ShieldEventHelper::print(const Funduino::ShieldEvent &shield_event)
+void Funduino::ShieldEventHelper::print(const Funduino::ShieldEvent &shield_event, const String &prefix)
 {
-    Serial.println("ShieldEventHelper::print");
-    String se;
+    String se{ prefix };
 
-    for(uint8_t idx = 0; idx < ShieldEvent::KEYS_COUNT; idx++)
-    {
-        const auto &key_event = shield_event.key_event[idx];
-        se.concat("key=");
-        se.concat(stringFromKeyType(keyTypeFromUint8(idx)));
-        se.concat("(");
-        se.concat(uint8FromKeyType(keyTypeFromUint8(idx)));
-        se.concat(")");
+    se.concat("key=");
+    se.concat(stringFromKeyType(shield_event.key));
+    se.concat("(");
+    se.concat(uint8FromKeyType(shield_event.key));
+    se.concat(")");
 
-        se.concat(" event=");
-        se.concat(stringFromEventType(key_event));
-        se.concat("(");
-        se.concat(uint8FromEventType(key_event));
-        se.concat(")\n");
-    }
+    se.concat(" event=");
+    se.concat(stringFromEventType(shield_event.event));
+    se.concat("(");
+    se.concat(uint8FromEventType(shield_event.event));
+    se.concat(") ");
 
-    Serial.println(se.c_str());
+    se.concat("shield_state:{");
+    Serial.print(se.c_str());
+    ShieldStateHelper::print(shield_event.shield_state, "");
+    Serial.print("}");
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Funduino::ShieldEventHelper::println(const Funduino::ShieldEvent &shield_event, const String &prefix)
+{
+    print(shield_event, prefix);
+    Serial.println();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -37,4 +43,5 @@ String stringFromEventType(const Funduino::KeyEventType &et)
 
     return names[uint8FromEventType(et)].c_str();
 }
+
 } // namespace Funduino

@@ -77,19 +77,26 @@ protected:
 
     ArduinoPinConfiguration pins;
 
-    ShieldState readState();
-    ShieldState state{ { KeyStateType::Released, KeyStateType::Released, KeyStateType::Released,
+    ShieldState &readState();
+    ShieldState state/*{ { KeyStateType::Released, KeyStateType::Released, KeyStateType::Released,
                          KeyStateType::Released, KeyStateType::Released, KeyStateType::Released },
-                       { KeyStateType::Released } };
+                       { KeyStateType::Released } }*/;
     EventReceiver *event_receiver{ nullptr };
 
-    ShieldEvent getEvent(const ShieldState &new_state);
+    void updateEvent(ShieldEvent &event, const ShieldState &new_state) const;
     static KeyEventType eventTypeFromKeyState(KeyStateType ks);
-    static bool addKeyEvent(ShieldEvent &event, KeyType key, KeyStateType current_key_state, KeyStateType new_key_state);
+    static bool updateIfKeyEvent(ShieldEvent &shield_event, KeyType key, KeyStateType current_key_state, KeyStateType new_key_state);
 
     static bool isWithinDelta(const uint16_t &value, const uint16_t &new_value, const uint16_t &min_delta);
-    static bool
-    addJoystickEvent(ShieldEvent &event, KeyType key, const uint16_t &current_value, const uint16_t& new_value, const int16_t &min_delta);
+    static bool updateIfJoystickEvent(ShieldEvent &event,
+                                      KeyType key,
+                                      const uint16_t &current_value,
+                                      const uint16_t &new_value,
+                                      const uint16_t &min_delta);
+
+    bool isCalibrated();
+
+private:
 };
 
 } // namespace Funduino

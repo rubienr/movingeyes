@@ -13,12 +13,17 @@ using namespace EyeMech;
 
 struct Resources : public EventReceiver
 {
+    struct EarlyInitializer
+    {
+        PCA9685_ServoEvaluator servo_evaluator{ servoEvaluatorMg90sMicroservo() };
+    } early_init;
+
     TogglePin led_x{ 0 };
     TogglePin led_y{ 1 };
     TogglePin led{ LED_BUILTIN };
 
     JoystickShield input_device;
-    MovingEyes eyes;
+    MovingEyes eyes{ mechanicLimitsDefault(), early_init.servo_evaluator };
 
     //----------------------------------------------------------------------------------------------
     void setup()
@@ -44,21 +49,22 @@ struct Resources : public EventReceiver
     {
         static EyesActuation actuation;
         led.toggle();
+        // ShieldEventHelper::println(e, "Resources::take: ");
 
-        // Serial.println("Resources::take");
-        // ShieldEventHelper::print(e);
         bool consumed{ false };
-        if(e.key_event[uint8FromKeyType(KeyType::X)] == KeyEventType::Changed)
+        if(e.key == KeyType::X && e.event == KeyEventType::Changed)
         {
 
-            actuation.bearing = input_device.getJoystickData().x.getNormalizedValue() * 180 - 90;
+            actuation.bearing =
+            static_cast<int8_t>(input_device.getJoystickData().x.getNormalizedValue() * 180 - 90);
             led_x.toggle();
             consumed = true;
         }
 
-        if(e.key_event[uint8FromKeyType(KeyType::Y)] == KeyEventType::Changed)
+        if(e.key == KeyType::Y && e.event == KeyEventType::Changed)
         {
-            actuation.elevation = input_device.getJoystickData().y.getNormalizedValue() * 180 - 90;
+            actuation.elevation =
+            static_cast<int8_t>(input_device.getJoystickData().y.getNormalizedValue() * 180 - 90);
             led_y.toggle();
             consumed = true;
         }

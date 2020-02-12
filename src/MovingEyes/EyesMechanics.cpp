@@ -5,6 +5,13 @@ namespace EyeMech
 
 //--------------------------------------------------------------------------------------------------
 
+EyesMechanics::EyesMechanics(PCA9685_ServoEvaluator &servo_evaluator)
+: servo_evaluator{ servo_evaluator }
+{
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void EyesMechanics::setup()
 {
     Wire.begin();
@@ -20,7 +27,7 @@ void EyesMechanics::setup()
 void EyesMechanics::process()
 {
     // Serial.println("EyesMechanics::process");
-    // RawActuationHelper::print(raw_actuation_values);
+    // RawActuationHelper::println(raw_actuation_values, "EyesMechanics::process: ");
 
     raw_actuation_values.channels_pwm[0] = servo_evaluator.pwmForAngle(raw_actuation_values.elevation);
     raw_actuation_values.channels_pwm[1] = servo_evaluator.pwmForAngle(raw_actuation_values.bearing);
@@ -34,12 +41,11 @@ void EyesMechanics::process()
     controller.setChannelsPWM(0, PCA9685_CHANNEL_COUNT, raw_actuation_values.channels_pwm);
 }
 
-
 //--------------------------------------------------------------------------------------------------
 
-void EyesActuationHelper::print(const EyesActuation &o)
+void EyesActuationHelper::print(const EyesActuation &o, const String &prefix)
 {
-    Serial.print("EyesActuationHelper::print");
+    Serial.print(prefix);
 
     Serial.print(" B=");
     Serial.print(o.bearing);
@@ -55,15 +61,21 @@ void EyesActuationHelper::print(const EyesActuation &o)
     Serial.print(o.right.lid.upper);
     Serial.print(" right.lid.lower=");
     Serial.print(o.right.lid.lower);
+}
 
+//--------------------------------------------------------------------------------------------------
+
+void EyesActuationHelper::println(const EyesActuation &o, const String &prefix)
+{
+    print(o, prefix);
     Serial.println();
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void RawActuationHelper::print(const RawActuation &o)
+void RawActuationHelper::print(const RawActuation &o, const String &prefix)
 {
-    Serial.print("RawActuationHelper::print");
+    Serial.print(prefix);
 
     Serial.print(" B=");
     Serial.print(o.bearing);
@@ -79,7 +91,13 @@ void RawActuationHelper::print(const RawActuation &o)
     Serial.print(o.right.lid.upper);
     Serial.print(" right.lid.lower=");
     Serial.print(o.right.lid.lower);
+}
 
+//--------------------------------------------------------------------------------------------------
+
+void RawActuationHelper::println(const RawActuation &o, const String &prefix)
+{
+    print(o, prefix);
     Serial.println();
 }
 

@@ -45,28 +45,31 @@ private:
 
 struct EyesActuationHelper
 {
-    static void print(const EyesActuation &o);
+    static void print(const EyesActuation &o, const String &prefix = "EyesActuationHelper::Print: ");
+    static void println(const EyesActuation &o, const String &prefix = "EyesActuationHelper::Print: ");
 };
 
 //--------------------------------------------------------------------------------------------------
 
 struct RawActuationHelper
 {
-    static void print(const RawActuation &o);
+    static void print(const RawActuation &o, const String &prefix);
+    static void println(const RawActuation &o, const String &prefix);
 };
 
 //--------------------------------------------------------------------------------------------------
 
 struct EyesMechanics
 {
+    explicit EyesMechanics(PCA9685_ServoEvaluator &servo_evaluator);
     virtual ~EyesMechanics() = default;
 
-    void setup();
+    virtual void setup();
     virtual void process();
 
 protected:
     PCA9685 controller{ Wire, PCA9685_PhaseBalancer_Weaved };
-    PCA9685_ServoEvaluator servo_evaluator; // (128,324,526);
+    PCA9685_ServoEvaluator &servo_evaluator;
     RawActuation raw_actuation_values;
 };
 

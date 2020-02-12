@@ -10,7 +10,7 @@ namespace Funduino
 
 struct Potentiometer
 {
-    uint16_t min{ 0xffff }, max{ 1 }, center{ 0xff }, value = { 0xff };
+    uint16_t min{ 1023 }, max{ 1 }, center{ 511 }, value = { 511 };
 
     void update(const uint16_t &new_value);
 
@@ -22,13 +22,7 @@ struct Potentiometer
     bool operator==(const Potentiometer &other) const;
     bool operator!=(const Potentiometer &other) const;
 
-    /**
-     * Assigns current value except
-     *   - center position (remains untouched)
-     *   - min (the minimum of both is taken)
-     *   - max (the maximum of both is taken)
-     */
-    Potentiometer &operator=(const Potentiometer &rhs);
+    void copyFrom(const Potentiometer &other);
 };
 
 //--------------------------------------------------------------------------------------------------
@@ -37,7 +31,9 @@ struct ShieldState
 {
     struct KeysState
     {
-        KeyStateType a, b, c, d, e, f;
+        KeyStateType a{ KeyStateType::Undefined }, b{ KeyStateType::Undefined },
+        c{ KeyStateType::Undefined }, d{ KeyStateType::Undefined }, e{ KeyStateType::Undefined },
+        f{ KeyStateType::Undefined };
 
         bool operator==(const KeysState &other) const;
         bool operator!=(const KeysState &other) const;
@@ -45,7 +41,7 @@ struct ShieldState
 
     struct Joystick
     {
-        KeyStateType z;
+        KeyStateType z{ KeyStateType::Undefined };
         Potentiometer x, y;
 
         bool operator==(const Joystick &other) const;
@@ -57,13 +53,16 @@ struct ShieldState
 
     bool operator==(const ShieldState &other) const;
     bool operator!=(const ShieldState &other) const;
+
+    ShieldState &operator=(const ShieldState &rhs);
 };
 
 //--------------------------------------------------------------------------------------------------
 
 struct ShieldStateHelper
 {
-    static void print(const ShieldState &state);
+    static void print(const ShieldState &state, const String &prefix = "ShieldStateHelper::print: ");
+    static void println(const ShieldState &state, const String &prefix = "ShieldStateHelper::print: ");
 };
 
 } //  namespace Funduino

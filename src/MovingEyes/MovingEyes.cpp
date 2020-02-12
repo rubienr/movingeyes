@@ -7,12 +7,16 @@ namespace EyeMech
 
 //--------------------------------------------------------------------------------------------------
 
-MovingEyes::MovingEyes(const Limits &limits) : mechanic_limits(limits) {}
+MovingEyes::MovingEyes(const Limits &limits, PCA9685_ServoEvaluator &evaluator, bool do_initial_move_zero)
+: EyesMechanics(evaluator), mechanic_limits(limits), do_initial_move_zero(do_initial_move_zero)
+{
+}
 
 //--------------------------------------------------------------------------------------------------
 
 void MovingEyes::setActuation(const EyesActuation &eyes_actuation)
 {
+    // EyesActuationHelper::println(eyes_actuation, "MovingEyes::setActuation: ");
     *static_cast<EyesActuation *>(&raw_actuation_values) = eyes_actuation;
     trimToMechanicalLimits();
 }
@@ -33,12 +37,22 @@ void MovingEyes::trimToMechanicalLimits()
 
 //--------------------------------------------------------------------------------------------------
 
-Limits getDefaultMechanicLimits()
+void MovingEyes::setup()
+{
+    EyesMechanics::setup();
+
+    if(do_initial_move_zero) setActuation({});
+    process();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+Limits mechanicLimitsDefault()
 {
     Limits l;
 
-    l.bearing = { -50, 50 };
-    l.elevation = { -50, 50 };
+    l.bearing = { -90, 90 };
+    l.elevation = { -90, 90 };
     l.left.lid.upper = { -50, 50 };
     l.left.lid.lower = { -50, 50 };
     l.left.lid.upper = { -50, 50 };
@@ -47,5 +61,23 @@ Limits getDefaultMechanicLimits()
     l.autoComplete();
     return l;
 }
+
+//--------------------------------------------------------------------------------------------------
+
+PCA9685_ServoEvaluator servoEvaluatorMg90sMicroservo()
+{
+    constexpr uint16_t min = 102, max = 512,
+                       center = static_cast<uint16_t>((static_cast<float>(max) - min) / 2 + min);
+
+    constexpr int16_t center_bias = +5;
+    constexpr int16_t min_bias = -7;
+    constexpr int16_t max_bias = +18;
+
+    return { min + min_bias, center + center_bias, max + max_bias };
+}
+
+//--------------------------------------------------------------------------------------------------
+
+PCA9685_ServoEvaluator servoEvaluatorDefault() { return {}; }
 
 } // namespace EyeMech
