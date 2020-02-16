@@ -1,76 +1,147 @@
 #pragma once
 
-#include <PCA9685.h>
+#include "MovingEyes.h"
+
+#include <HardwareSerial.h>
 
 namespace EyeMech
 {
 
-struct EyesMechanics;
+
+//--------------------------------------------------------------------------------------------------
+
+struct Range
+{
+    int8_t min, max; // mandatory
+    uint8_t range;   // can be computed with #autoComplete()
+
+    void autoComplete() { range = static_cast<uint8_t>(max(min, max) - min(min, max)); }
+};
 
 //--------------------------------------------------------------------------------------------------
 
 /**
- * Structure for eyes actuation (elevation, bearing, lids).
+ * The min and max limits (in degrees) the respective servo should move beyond.
  */
-
-struct EyesActuation
+struct Limits
 {
-    int8_t elevation{ 0 };
-    int8_t bearing{ 0 };
-
-    struct Lid
-    {
-        int8_t upper{ 0 };
-        int8_t lower{ 0 };
-    };
-
     struct
     {
-        Lid lid;
+        struct Lid
+        {
+            Range upper;
+            Range lower;
+
+            void autoComplete()
+            {
+                upper.autoComplete();
+                lower.autoComplete();
+            }
+
+        } lid;
+
+        void autoComplete() { lid.autoComplete(); }
     } left, right;
+
+    Range elevation;
+    Range bearing;
+
+    void autoComplete()
+    {
+        elevation.autoComplete();
+        bearing.autoComplete();
+        left.autoComplete();
+        right.autoComplete();
+    }
 };
+//--------------------------------------------------------------------------------------------------
+
+Limits mechanicLimitsDefault();
 
 //--------------------------------------------------------------------------------------------------
 
-struct RawActuation : public EyesActuation
-{
-    friend EyesMechanics;
-
-private:
-    static constexpr uint8_t CHANNELS_COUNT{ 12 };
-    uint16_t channels_pwm[CHANNELS_COUNT]{ 0 };
-};
+Limits mechanicLimitsMovingEyes();
 
 //--------------------------------------------------------------------------------------------------
 
-struct EyesActuationHelper
+struct CompensationAngles
 {
-    static void print(const EyesActuation &o, const String &prefix = "EyesActuationHelper::Print: ");
-    static void println(const EyesActuation &o, const String &prefix = "EyesActuationHelper::Print: ");
+    struct
+    {
+        struct Lid
+        {
+            int8_t upper;
+            int8_t lower;
+
+        } lid;
+
+    } left, right;
+
+    int8_t elevation;
+    int8_t bearing;
 };
+//--------------------------------------------------------------------------------------------------
+
+CompensationAngles compensationAnglesDefault();
 
 //--------------------------------------------------------------------------------------------------
 
-struct RawActuationHelper
-{
-    static void print(const RawActuation &o, const String &prefix);
-    static void println(const RawActuation &o, const String &prefix);
-};
+CompensationAngles compensationAnglesMovingEyes();
 
 //--------------------------------------------------------------------------------------------------
 
-struct EyesMechanics
+/**
+ * Implementation to interface with the eye mechanics and respecting min/max servo limits.
+ * Takes actuation values and projects them to the mechanics but will trim extreme actuation beyond
+ * servo limits. Caution: This implementation is not aware of mechanical collisions (for example:
+ * upper and lower eye lids).
+ */
+struct EyesMechanics : public MovingEyes
 {
-    explicit EyesMechanics(PCA9685_ServoEvaluator &servo_evaluator);
-    virtual ~EyesMechanics() = default;
+    /**
+     *
+     * @param wire @see MovingEyes constructor
+     * @param limits min and max servo limits the movement cannot go beyond
+     * @param compensation to bias servos for example adjusting the upper and lower eye lids zero position
+     * @param evaluator @see MovingEyes constructor
+     * @param balancer @see MovingEyes constructor
+     * @param do_initial_move_zero  @see MovingEyes constructor
+     */
+    EyesMechanics(TwoWire &wire,
+                  const Limits &limits,
+                  const CompensationAngles &compensation,
+                  PCA9685_ServoEvaluator &evaluator,
+                  PCA9685_PhaseBalancer balancer,
+                  bool do_initial_move_zero);
 
-    virtual void setup();
-    virtual void process();
+    ~EyesMechanics() override = default;
+
+    void setup() override;
+
+    virtual void setActuation(EyesActuation &actuation);
+
+    const Limits &getMechanicLimits();
 
 protected:
-    PCA9685 controller{ Wire, PCA9685_PhaseBalancer_Weaved };
-    PCA9685_ServoEvaluator &servo_evaluator;
-    RawActuation raw_actuation_values;
+    Limits mechanic_limits;
+    const bool do_initial_move_zero;
+
+
+    void trimToMechanicalLimits(EyesActuation &actuation);
+
+    template <typename type_t> void trim(type_t &value, const Range &range);
+    BiasedEyesActuation &toBiasedEyesActuation(const EyesActuation &actuation_values, const intern::RawActuation &bias_values);
 };
+
+//--------------------------------------------------------------------------------------------------
+
+template <typename type_t> void EyesMechanics::trim(type_t &value, const Range &range)
+{
+    if(value < range.min) { value = range.min; }
+    else if(value > range.max)
+    {
+        value = range.max;
+    }
+}
 
 } // namespace EyeMech

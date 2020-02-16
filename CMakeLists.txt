@@ -95,4 +95,4 @@ add_custom_target(
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(Z_DUMMY_TARGET ${SRC_LIST} src/MovingEyes/EyesMechanics.cpp src/MovingEyes/EyesMechanics.h src/MovingEyes/MovingEyes.cpp src/MovingEyes/MovingEyes.h)
+add_executable(Z_DUMMY_TARGET ${SRC_LIST} src/MovingEyes/MovingEyes.cpp src/MovingEyes/MovingEyes.h src/MovingEyes/EyesMechanics.cpp src/MovingEyes/EyesMechanics.h src/MovingEyes/Eyes.cpp src/MovingEyes/Eyes.h)

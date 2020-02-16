@@ -40,6 +40,7 @@ void JoystickShield::setup()
 
 bool JoystickShield::process()
 {
+
     ShieldState &new_state = readState();
 
     // on key event
@@ -56,7 +57,6 @@ bool JoystickShield::process()
     // update state and trigger events
     if(has_changed)
     {
-        // Serial.println("JoystickShield::process: state changed");
         // ShieldStateHelper::println(state, "JoystickShield::process: old state ");
         // ShieldStateHelper::println(new_state, "JoystickShield::process: new state ");
 
@@ -64,9 +64,10 @@ bool JoystickShield::process()
         {
             static ShieldEvent event;
             updateEvent(event, new_state);
+            //ShieldEventHelper::println(event);
             state = new_state;
 
-            if(isCalibrated()) event_receiver->take(event);
+            if(isCalibrated()) { event_receiver->take(event); }
         }
         else
         {
@@ -144,21 +145,17 @@ void JoystickShield::updateEvent(ShieldEvent &event, const ShieldState &new_stat
 KeyEventType JoystickShield::eventTypeFromKeyState(KeyStateType ks)
 {
     if(ks == KeyStateType::Pressed) { return KeyEventType::Pressed; }
-    else if(ks == KeyStateType::Released)
-    {
-        return KeyEventType::Released;
-    }
-    else if(ks == KeyStateType::Undefined)
-    {
-        return KeyEventType::None;
-    }
-
+    if(ks == KeyStateType::Released) { return KeyEventType::Released; }
+    if(ks == KeyStateType::Undefined) { return KeyEventType::None; }
     return KeyEventType::None;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-bool JoystickShield::updateIfKeyEvent(ShieldEvent &shield_event, KeyType key, KeyStateType current_key_state, KeyStateType new_key_state)
+bool JoystickShield::updateIfKeyEvent(ShieldEvent &shield_event,
+                                      const KeyType key,
+                                      const KeyStateType current_key_state,
+                                      const KeyStateType new_key_state)
 {
     if(current_key_state == new_key_state) { return false; }
 
@@ -221,7 +218,7 @@ bool JoystickShield::isCalibrated()
     };
 
     auto is_home_position = [](const Potentiometer &p) {
-        const uint16_t min = p.center - 10, max = p.center + 10;
+        const uint16_t min = p.center - 20, max = p.center + 20;
         return min <= p.value && p.value <= max;
     };
 

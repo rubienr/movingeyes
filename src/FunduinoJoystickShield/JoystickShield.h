@@ -36,6 +36,19 @@ constexpr ArduinoPinConfiguration leonardoPinout()
 
 //--------------------------------------------------------------------------------------------------
 
+/**
+ * Pinout with A/B moved to D9/D10 to leave SDA/SCL untouched.
+ * Leonardo compatible pinout with A/B moved to D9/D10 to leave D2/D3 free for SDA/SCL.
+ * Needs removal of the respective pins (interrupt, unsolder) and reconnecting to D9/D10
+ *
+ */
+constexpr ArduinoPinConfiguration leonardoPinoutSerial()
+{
+    return { { { 9, 10, 4, 5, 6, 7 }, { A0, A1, 8 } } };
+}
+
+//--------------------------------------------------------------------------------------------------
+
 class JoystickShield
 {
 public:
@@ -78,14 +91,18 @@ protected:
     ArduinoPinConfiguration pins;
 
     ShieldState &readState();
-    ShieldState state/*{ { KeyStateType::Released, KeyStateType::Released, KeyStateType::Released,
-                         KeyStateType::Released, KeyStateType::Released, KeyStateType::Released },
-                       { KeyStateType::Released } }*/;
+    ShieldState state /*{ { KeyStateType::Released, KeyStateType::Released, KeyStateType::Released,
+                          KeyStateType::Released, KeyStateType::Released, KeyStateType::Released },
+                        { KeyStateType::Released } }*/
+    ;
     EventReceiver *event_receiver{ nullptr };
 
     void updateEvent(ShieldEvent &event, const ShieldState &new_state) const;
     static KeyEventType eventTypeFromKeyState(KeyStateType ks);
-    static bool updateIfKeyEvent(ShieldEvent &shield_event, KeyType key, KeyStateType current_key_state, KeyStateType new_key_state);
+    static bool updateIfKeyEvent(ShieldEvent &shield_event,
+                                 const KeyType key,
+                                 const KeyStateType current_key_state,
+                                 const KeyStateType new_key_state);
 
     static bool isWithinDelta(const uint16_t &value, const uint16_t &new_value, const uint16_t &min_delta);
     static bool updateIfJoystickEvent(ShieldEvent &event,

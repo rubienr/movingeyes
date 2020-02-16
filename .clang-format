@@ -1,6 +1,7 @@
 AccessModifierOffset: -4
 AlignEscapedNewlines: Left
 AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: true
 AllowAllConstructorInitializersOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortFunctionsOnASingleLine: All

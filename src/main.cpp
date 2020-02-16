@@ -1,13 +1,18 @@
 #include "FunduinoJoystickShield/JoystickShield.h"
-#include "MovingEyes/EyesMechanics.h"
-
+#include "MovingEyes/Eyes.h"
+#include "MovingEyes/MovingEyes.h"
 #include <Arduino.h>
 #include <HardwareSerial.h>
+#include <MovingEyes/EyesMechanics.h>
 #include <MovingEyes/MovingEyes.h>
+#include <Wire.h>
 #include <pinutils.h>
 
 using namespace Funduino;
 using namespace EyeMech;
+
+//--------------------------------------------------------------------------------------------------
+int8_t convertToDegree(const float &normalized, const Range &range);
 
 //--------------------------------------------------------------------------------------------------
 
@@ -16,19 +21,26 @@ struct Resources : public EventReceiver
     struct EarlyInitializer
     {
         PCA9685_ServoEvaluator servo_evaluator{ servoEvaluatorMg90sMicroservo() };
+        Limits mechanic_limits{ mechanicLimitsMovingEyes() };
+        CompensationAngles compensation{ compensationAnglesMovingEyes() };
+        Constraints constraints{ constraintsDefault() };
     } early_init;
 
-    TogglePin led_x{ 0 };
-    TogglePin led_y{ 1 };
-    TogglePin led{ LED_BUILTIN };
+    //TogglePin led_x{ LED_BUILTIN_TX };
+    //TogglePin led_y{ LED_BUILTIN_RX };
 
-    JoystickShield input_device;
-    MovingEyes eyes{ mechanicLimitsDefault(), early_init.servo_evaluator };
+    JoystickShield input_device{ leonardoPinoutSerial() };
+    Eyes eyes{ Wire,
+               early_init.constraints,
+               early_init.mechanic_limits,
+               early_init.compensation,
+               early_init.servo_evaluator,
+               PCA9685_PhaseBalancer_Weaved,
+               true };
 
     //----------------------------------------------------------------------------------------------
     void setup()
     {
-
         Serial.begin(230400);
         while(!Serial)
             delay(10);
@@ -48,25 +60,92 @@ struct Resources : public EventReceiver
     bool take(const Funduino::ShieldEvent &e) override
     {
         static EyesActuation actuation;
-        led.toggle();
-        // ShieldEventHelper::println(e, "Resources::take: ");
-
+        ScopedTogglePin led{ LED_BUILTIN };
         bool consumed{ false };
-        if(e.key == KeyType::X && e.event == KeyEventType::Changed)
+        ShieldEventHelper::println(e, "Resources::take: ");
+
+        switch(e.key)
         {
 
-            actuation.bearing =
-            static_cast<int8_t>(input_device.getJoystickData().x.getNormalizedValue() * 180 - 90);
-            led_x.toggle();
-            consumed = true;
-        }
+        case KeyType::A:
+            break;
 
-        if(e.key == KeyType::Y && e.event == KeyEventType::Changed)
-        {
-            actuation.elevation =
-            static_cast<int8_t>(input_device.getJoystickData().y.getNormalizedValue() * 180 - 90);
-            led_y.toggle();
-            consumed = true;
+        case KeyType::B:
+            if(!consumed && e.event == KeyEventType::Pressed)
+            {
+                actuation.right.lid.upper = 0;
+                actuation.right.lid.lower = 0;
+                consumed = true;
+            }
+            else if(!consumed && e.event == KeyEventType::Released)
+            {
+                actuation.right.lid.upper = 30;
+                actuation.right.lid.lower = -30;
+                consumed = true;
+            }
+            break;
+
+        case KeyType::C:
+            break;
+
+        case KeyType::D:
+            if(!consumed && e.event == KeyEventType::Pressed)
+            {
+                actuation.left.lid.upper = 0;
+                actuation.left.lid.lower = 0;
+                consumed = true;
+            }
+            else if(!consumed && e.event == KeyEventType::Released)
+            {
+                actuation.left.lid.upper = 30;
+                actuation.left.lid.lower = -30;
+                consumed = true;
+            }
+            break;
+
+        case KeyType::E:
+            break;
+
+        case KeyType::F:
+            break;
+
+        case KeyType::X:
+        case KeyType::Y:
+            if(!consumed && e.event == KeyEventType::Changed)
+            {
+
+                actuation.bearing = convertToDegree(input_device.getJoystickData().x.getNormalizedValue(),
+                                                    eyes.getMechanicLimits().bearing);
+                //led_x.toggle();
+
+                actuation.elevation = convertToDegree(input_device.getJoystickData().y.getNormalizedValue(),
+                                                      eyes.getMechanicLimits().elevation);
+                //led_y.toggle();
+                consumed = true;
+            }
+            break;
+
+        case KeyType::Z:
+            if(!consumed && e.event == KeyEventType::Pressed)
+            {
+                actuation.left.lid.upper = 0;
+                actuation.left.lid.lower = 0;
+                actuation.right.lid.upper = 0;
+                actuation.right.lid.lower = 0;
+                consumed = true;
+            }
+            else if(!consumed && e.event == KeyEventType::Released)
+            {
+                actuation.left.lid.upper = 50;
+                actuation.left.lid.lower = -50;
+                actuation.right.lid.upper = 50;
+                actuation.right.lid.lower = -50;
+                consumed = true;
+            }
+            break;
+
+        default:
+            break;
         }
 
         if(consumed)
@@ -87,3 +166,10 @@ void setup() { r.setup(); }
 //--------------------------------------------------------------------------------------------------
 
 void loop() { r.process(); }
+
+//--------------------------------------------------------------------------------------------------
+
+int8_t convertToDegree(const float &normalized, const Range &range)
+{
+    return static_cast<int8_t>(normalized * range.range + range.min);
+}
