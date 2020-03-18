@@ -159,7 +159,7 @@ CompensationAngles compensationAnglesMovingEyes()
     //c.left = { -40, +35 };
     //c.right = { -36, +30 };
 
-    c.left = { -35, +30 };
+     c.left = { -35, +30 };
     c.right = { -31, +30 };
 
     c.elevation = -10;
