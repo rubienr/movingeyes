@@ -1,0 +1,16 @@
+CMakeListsPrivate.txt
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+cmake-*
+
+install_manifest.txt
+CTestTestfile.cmake
+
+.pio
+.pioenvs
+.piolibdeps
+
+.idea
