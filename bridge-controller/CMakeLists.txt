@@ -87,4 +87,4 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(Z_DUMMY_TARGET ${SRC_LIST} src/bridge/BridgeUdp.h src/UdpReceiverSerial.h src/bridge/types.h)
+add_executable(Z_DUMMY_TARGET ${SRC_LIST})
