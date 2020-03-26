@@ -7,7 +7,7 @@
 
 cmake_minimum_required(VERSION 3.2)
 
-project("movingeyes")
+project("base-board")
 
 include(CMakeListsPrivate.txt)
 
@@ -87,12 +87,4 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_custom_target(
-        PLATFORMIO_UPLOAD_MOITOR ALL
-        COMMAND ${PLATFORMIO_CMD} -f -c clion run --target upload "$<$<NOT:$<CONFIG:All>>:-e${CMAKE_BUILD_TYPE}>"
-        COMMAND sleep 1
-        COMMAND ${PLATFORMIO_CMD} -f -c clion device monitor "$<$<NOT:$<CONFIG:All>>:-e${CMAKE_BUILD_TYPE}>"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-add_executable(Z_DUMMY_TARGET ${SRC_LIST} src/MovingEyes/MovingEyes.cpp src/MovingEyes/MovingEyes.h src/MovingEyes/EyesMechanics.cpp src/MovingEyes/EyesMechanics.h src/MovingEyes/Eyes.cpp src/MovingEyes/Eyes.h)
+add_executable(Z_DUMMY_TARGET ${SRC_LIST})
