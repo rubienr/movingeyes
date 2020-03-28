@@ -6,6 +6,7 @@
      1. on Wire.endTransmission() master reports "received NACK on transmit of address"
 * https://github.com/suculent/esp8266-I2C-slave
   * latest expressif8266 arduino framework ist 2.4.0 (https://github.com/platformio/platform-espressif8266)
+* Example to reproduce issue: https://www.arduino.cc/en/Tutorial/MasterWriter
 
 # Wireless Bridge
 A bridge allowing to easily connect two endpoints via UDP. Currently it can bypass 
