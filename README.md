@@ -6,8 +6,8 @@ Implementation for Printed Animatronic Eye Mechanism. Lets call it Monika!
 * https://www.instructables.com/id/DIY-Compact-3D-Printed-Animatronic-Eye-Mechanism/
 * https://www.youtube.com/watch?v=Ftt9e8xnKE4  
 
-[Controller](controller/README.md)
-[Wireless Bridge](wifi-bridge/README.md)
+* [Controller](controller/README.md)
+* [Wireless Bridge](wifi-bridge/README.md)
 
 ## Overview
 ### Wired
