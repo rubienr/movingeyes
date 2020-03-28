@@ -1,91 +1,133 @@
-#include "serial/SerialLineReader.h"
-#include "utils.h"
 #include <Arduino.h>
-#include <BridgeUdp.h>
 #include <HardwareSerial.h>
-#include <UdpReceiverSerial.h>
+#include <Wire.h>
+
+#include <SerialLineReader.h>
 #include <pinutils.h>
 
-//--------------------------------------------------------------------------------------------------
-
-constexpr const uint16_t MESSAGE_PAYLOAD_BUFFER = 255;
-using BridgeUdp_t = BridgeUdp<MESSAGE_PAYLOAD_BUFFER>;
-using UdpReceiverSerial_t = UdpReceiverSerial<MESSAGE_PAYLOAD_BUFFER>;
+#include "serial.h"
+#include "utils.h"
 
 //--------------------------------------------------------------------------------------------------
 
-struct Resources
+// extern void onBytesReceived(int bytes_count);
+
+//--------------------------------------------------------------------------------------------------
+
+struct UdpWire
 {
     //----------------------------------------------------------------------------------------------
 
-    TogglePin led_pin{ LED_BUILTIN };
-    SerialLineReader serial_buffer;
-    BridgeUdp_t bridge{ { 239, 0, 0, 1 }, UDP_PORT, true };
-    UdpReceiverSerial_t datagram_receiver_serial;
+    TogglePin led{ LED_BUILTIN };
+    SerialLineReader line_reader;
+
+    uint8_t address{ (utils::isServerMode()) ? 1 : 2 };
+    uint8_t other_address{ (utils::isServerMode()) ? 2 : 1 };
+
+    String slave_recv_buffer;
 
     //----------------------------------------------------------------------------------------------
 
     void setup()
     {
-        datagram_receiver_serial.setup();
-        bridge.setVerbose(false);
-        bridge.setSetLogErrorsOff(false);
-        bridge.setup();
-        bridge.setDatagramReceiver(&datagram_receiver_serial);
+        Serial.printf("UdpWire::setup: our I2C address is %d\n", address);
+        Wire.setClock(50000);
+        Wire.begin(SDA, SCL, address);
+
+        line_reader.setup();
     }
 
     //----------------------------------------------------------------------------------------------
 
+    // I2C -> serial
+    void onBytesReceived(int bytes_count)
+    {
+        // Serial.printf("UdpWire::onBytesReceived: received %d bytes >", bytes_count);
+
+        while(Wire.available() > 0)
+        {
+            slave_recv_buffer.concat(Wire.read());
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
+
+    void onRequest() { Serial.printf("UdpWire::onRequest\n"); }
+
+    //----------------------------------------------------------------------------------------------
+
+    // serial -> I2C
     void process()
     {
-        // sanity check
-        if(!utils::isWifiConnected())
-        {
-            led_pin.toggle();
-            Serial.printf("WIFI not connected, mode %s\n", (utils::isWifiModeAp()) ? "AP" : "STA");
-            delay(1000);
-            return;
-        }
+        line_reader.process();
 
-        if(utils::isWifiReconnected())
+        if(utils::isServerMode())
         {
-            led_pin.toggle();
-            Serial.printf("WIFI connected, mode %s\n", (utils::isWifiModeAp()) ? "AP" : "STA");
-
-            Serial.print("Local  IP ");
-            Serial.println(WiFi.localIP());
-            Serial.print("SoftAP IP ");
-            Serial.println(WiFi.softAPIP());
-            bridge.setup();
-        }
-
-        // read udp -> send to serial
-        if(bridge.process())
-        {
-            led_pin.toggle();
-        }
-
-        // read serial -> write to udp
-        if(serial_buffer.process())
-        {
-            while(serial_buffer.hasLine())
+            while(line_reader.hasLine())
             {
-                String line{ serial_buffer.getLine() };
+                String line{ line_reader.getLine() };
 
-                static BridgeUdp_t ::Datagram_t datagram;
-                if(line.length() <= sizeof(datagram.package.payload.data))
+                Wire.beginTransmission(other_address);
+
+                size_t bytes_written = Wire.write(line.c_str());
+                if(bytes_written != line.length())
                 {
-                    uint16_t bytes_count{ static_cast<uint16_t>(line.length()) };
-
-                    memcpy(datagram.package.payload.data, line.c_str(), bytes_count);
-                    datagram.package.payload.bytes_buffered = bytes_count;
-                    datagram.updateCrc();
-
-                    bridge.send(datagram);
+                    Serial.printf("UdpWire::process: failed to write line bytes: wrote only %d bytes of %d\n",
+                                  bytes_written, line.length());
+                    Wire.flush();
+                    return;
                 }
-                led_pin.toggle();
+
+                uint8_t send_result = Wire.endTransmission();
+                switch(send_result)
+                {
+                case 0: // ok
+                    led.toggle();
+                    return;
+                    break;
+
+                case 2:
+                    Serial.printf("UdpWire::process: received NACK on transmit of address %d\n", other_address);
+                    Wire.flush();
+                    break;
+
+                case 3:
+                    Serial.println("UdpWire::process: received NACK on transmit of data");
+                    Wire.flush();
+                    break;
+
+                case 4:
+                    Serial.println("line busy");
+                    Wire.flush();
+                    break;
+                }
+            }
+        }
+        else
+        {
+            while(!slave_recv_buffer.isEmpty())
+            {
+                Serial.printf("UdpWire::process: I2C receive buffer >%s<\n", slave_recv_buffer.c_str());
+                slave_recv_buffer = "";
             }
         }
     }
 
-} r;
+    void scan()
+    {
+        uint8_t count = 0;
+        for(byte addr = 8; addr < 120; addr++)
+        {
+            Wire.beginTransmission(addr);
+            if(Wire.endTransmission() == 0)
+            {
+                Serial.print("Found I2C Device: ");
+                Serial.print(" (0x");
+                Serial.print(addr, HEX);
+                Serial.println(")");
+                count++;
+                delay(1);
+            }
+        }
+    }
+};

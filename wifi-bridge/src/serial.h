@@ -1,12 +1,15 @@
-#include "utils.h"
-#include <BridgeUdp.h>
 #include <HardwareSerial.h>
-#include <SerialReaderUdp.h>
+
 #include <UdpReceiverSerial.h>
+#include <BridgeUdp.h>
+#include <SerialReaderUdp.h>
+
 #include <pinutils.h>
+#include "utils.h"
 
 //--------------------------------------------------------------------------------------------------
 
+// todo rr: move bridge to main and pass ref to here
 constexpr const uint16_t MESSAGE_PAYLOAD_BUFFER = 255;
 using UdpReceiverSerial_t = UdpReceiverSerial<MESSAGE_PAYLOAD_BUFFER>;
 using BridgeUdp_t = BridgeUdp<MESSAGE_PAYLOAD_BUFFER>;
@@ -14,10 +17,10 @@ using SerialReaderUdp_t = SerialReaderUdp<MESSAGE_PAYLOAD_BUFFER>;
 
 //--------------------------------------------------------------------------------------------------
 
-struct Resources {
+struct UdpSerial {
   //----------------------------------------------------------------------------------------------
 
-  TogglePin led_pin{LED_BUILTIN};
+  TogglePin led{LED_BUILTIN};
   UdpReceiverSerial_t datagram_receiver_serial;
   BridgeUdp_t bridge{{239, 0, 0, 1}, UDP_PORT, true};
   SerialReaderUdp_t serial_reader;
@@ -41,7 +44,7 @@ struct Resources {
   void process() {
     // sanity check
     if (!utils::isWifiConnected()) {
-      led_pin.toggle();
+      led.toggle();
       Serial.printf("WIFI not connected, mode %s\n",
                     (utils::isWifiModeAp()) ? "AP" : "STA");
       delay(1000);
@@ -49,7 +52,7 @@ struct Resources {
     }
 
     if (utils::isWifiReconnected()) {
-      led_pin.toggle();
+      led.toggle();
       Serial.printf("WIFI connected, mode %s\n",
                     (utils::isWifiModeAp()) ? "AP" : "STA");
 
@@ -62,10 +65,10 @@ struct Resources {
 
     // read UDP -> send to serial
     if (bridge.process())
-      led_pin.toggle();
+      led.toggle();
 
     // read serial -> send to UDP
     if (serial_reader.process())
-      led_pin.toggle();
+      led.toggle();
   }
-} r;
+};

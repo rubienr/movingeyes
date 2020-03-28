@@ -22,17 +22,18 @@ pio run --target upload
 ## Pinout & Wiring
 ```
 Wired Setup
-  _______                ______             ________
- | Eyes  |              | PCA  |           | Ardu-  |
- | mech. | ←--6x PWM--- | 9685 | ←--i2c--- | ino L. | 
- |_______|              |______|           |________|
-                                               ↑
-                                               |
-                                           shield pins
-                                            ___|____
-                                           | Joyst. |
-                                           | shield |
-                                           |________|
+  _______                ___________             ____________
+ | Eyes  |              | PCA       |           | Arduino L. |
+ | mech. | ←--6x PWM--- | 9685      | ←--i2c--- |            | 
+ |       |              | I2C slave |           | I2C master |          
+ |_______|              |___________|           |____________|
+                                                      ↑
+                                                      |
+                                                  shield pins
+                                                   ___|____
+                                                  | Joyst. |
+                                                  | shield |
+                                                  |________|
 ```
 ### Funduino Joystick Shield => Arduino Leonardo
 1. Remove pins of keys A and B from joystick shield since they interfer with the I2C bus. 
@@ -63,16 +64,18 @@ Servos are as from Monika's perspective seen:
 TBD: Work in progress ...
 ```
 Wireless Setup
-  _______                ______             _________
- | Eyes  |              | PCA  |           | Wemos-  |
- | mech. | ←--6x PWM--- | 9685 | ←--i2c--- | D1 mini | 
- |_______|              |______|           |_________|
-                                                 ↑
-                                                 |
-                                              Wifi UDP 📶 📶
-                                                 |
-  ________              ________             ____↓____
- | Joyst. |            | Ardu-  |           | Wemos   |
- | shield | ---pins--→ | ino L. | ---i2c--→ | D1 mini |
- |________|            |________|           |_________|
+  _______                ___________             ____________
+ | Eyes  |              | PCA       |           | Wemos-     |
+ | mech. | ←--6x PWM--- | 9685      | ←--i2c--- | D1 mini    | 
+ |       |              | I2C slave |           | I2C master |          
+ |_______|              |___________|           |____________|
+                                                      ↑
+                                                      |
+                                                 📶 Wifi UDP
+                                                      |
+  ________              ____________             _____↓_____
+ | Joyst. |            | Ardu-      |           | Wemos     |
+ | shield | ---pins--→ | ino L.     | ---i2c--→ | D1 mini   |
+ |        |            | I2C master |           | I2C slave |
+ |________|            |____________|           |___________|
 ```

@@ -1,12 +1,11 @@
 #!/bin/bash
 
-ENV="client"
+ENV="$1"
 TARGET="upload"
 
 USB=`ls /dev/ttyUSB* | tr ' ' '\n' | sort  | head -1`
 
-if [ "xx$1" = "xxserver" ] ; then 
-    ENV="server"
+if [ "xx$(echo $ENV | grep -o server)" = "xxserver" ] ; then 
     USB=`ls /dev/ttyUSB* | tr ' ' '\n' | sort  | tail -1` 
 fi
 

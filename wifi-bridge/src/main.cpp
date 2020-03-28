@@ -1,18 +1,44 @@
 #ifdef BRIDGE_SERIAL
 #include "serial.h"
-#elif BRIDGE_I2C
+#endif
+
+#ifdef BRIDGE_I2C
 #include "i2c.h"
+#endif
+
+#include "utils.h"
+
+//--------------------------------------------------------------------------------------------------
+
+// sanity check
+
+#ifdef BRIDGE_SERIAL
+#pragma message "CONNECTION MODE: SERIAL"
+#elif BRIDGE_I2C
+#pragma message "CONNECTION MODE: I2C"
 #else
-#error Either BRIDGE_I2C or BRIDGE_SERIAL must be defined.
+#error Either BRIDGE_SERIAL or BRIDGE_I2C must be defined.
+#endif
+
+#ifdef MODE_SERVER
+#pragma message "SERVICE MODE: SERVER"
+#elif MODE_CLIENT
+#pragma message "SERVICE MODE: CLIENT"
+#else
+#error Either MODE_SERVER or MODE_CLIENT must be defined.
 #endif
 
 //--------------------------------------------------------------------------------------------------
 
-extern Resources r;
+
+#ifdef BRIDGE_I2C
+void onBytesReceived(int bytes_count);
+void onRequest(void);
+#endif
 
 //--------------------------------------------------------------------------------------------------
 
-struct Setup
+struct Ressources
 {
     //----------------------------------------------------------------------------------------------
     struct EarlyInit
@@ -24,26 +50,27 @@ struct Setup
                 delay(10);
             Serial.print("\n\n\n");
             Serial.println("Setup::setup");
+
+            // todo rr
+#ifdef BRIDGE_I2C
+        if (!utils::isServerMode())
+        {
+            Wire.onReceive(onBytesReceived);
+            Wire.onRequest(onRequest);
+        }
+#endif
         }
     } _;
 
     //----------------------------------------------------------------------------------------------
 
-    TogglePin led_pin{ LED_BUILTIN };
+    TogglePin led{ LED_BUILTIN };
 
-    SerialLineReader serial_buffer;
-
-#ifdef MODE_SERVER
-    bool server_mode{ true };
-#elif MODE_CLIENT
-    bool server_mode{ false };
+#ifdef BRIDGE_SERIAL
+    UdpSerial connection;
+#elif BRIDGE_I2C
+    UdpWire connection;
 #endif
-
-    bool last_wifi_connected_state{ false };
-
-    BridgeUdp_t bridge{ { 239, 0, 0, 1 }, UDP_PORT, true };
-
-    UdpReceiverSerial_t datagram_receiver_serial;
 
     //----------------------------------------------------------------------------------------------
 
@@ -62,7 +89,7 @@ struct Setup
         String ssid{ WIFI_SSID };
         String passphrase{ WIFI_PASSPHRASE };
 
-        if(server_mode)
+        if(utils::isServerMode())
         {
             Serial.println("WiFi mode AP");
             WiFi.enableAP(false);
@@ -82,29 +109,31 @@ struct Setup
             digitalWrite(LED_BUILTIN, LOW); // on
         }
 
-        //WiFi.setOutputPower(10);
+        // WiFi.setOutputPower(10);
         Serial.println("WiFi OK");
         Serial.print("Local IP ");
         Serial.println(WiFi.localIP());
         Serial.print("SoftAP IP ");
         Serial.println(WiFi.softAPIP());
 
-        datagram_receiver_serial.setup();
-        bridge.setVerbose(false);
-        bridge.setSetLogErrorsOff(false);
-        bridge.setup();
-        bridge.setDatagramReceiver(&datagram_receiver_serial);
+        connection.setup();
     }
-} s;
+
+    void process() { connection.process(); }
+
+} r;
 
 //--------------------------------------------------------------------------------------------------
 
-void setup()
-{
-    s.setup();
-    r.setup();
-}
+void setup() { r.setup(); }
 
 //--------------------------------------------------------------------------------------------------
 
 void loop() { r.process(); }
+
+//--------------------------------------------------------------------------------------------------
+
+#ifdef BRIDGE_I2C
+void onBytesReceived(int bytes_count) { r.connection.onBytesReceived(bytes_count); }
+void onRequest() { r.connection.onRequest(); }
+#endif

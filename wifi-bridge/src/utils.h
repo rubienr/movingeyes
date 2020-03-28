@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 
@@ -46,6 +48,17 @@ bool isWifiReconnected()
     }
 
     return false;
+}
+
+//----------------------------------------------------------------------------------------------
+
+constexpr bool isServerMode()
+{
+#ifdef MODE_SERVER
+    return true;
+#elif MODE_CLIENT
+    return false;
+#endif
 }
 
 } // namespace utils

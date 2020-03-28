@@ -7,7 +7,7 @@
 
 cmake_minimum_required(VERSION 3.2)
 
-project("bridge-controller")
+project("wifi-bridge")
 
 include(CMakeListsPrivate.txt)
 
