@@ -108,6 +108,8 @@ funduino::ArduinoPinConfiguration getConfiguredJoystickShieldPinout();
 
 /**
  * enable moving eyes tier (collision avoidance of mechanics) serial debug output
+ * NOTE: This tier is not fully implemented yet, see
+ * MovingEyes::trimToConstraints(servo::EyesActuation &).
  */
 //#define DEBUG_MOVING_EYES_TIER
 
@@ -162,3 +164,9 @@ funduino::ArduinoPinConfiguration getConfiguredJoystickShieldPinout();
  * enable very high level serial debug output
  */
 //#define DEBUG_MAIN
+
+/**
+ * Timeout until servo signal is deactivated. The servos shall remain at the same position without
+ * regulation. Undefine to disable feature.
+ */
+#define SERVO_IDLE_TIMEOUT_MS (1000 * 30)

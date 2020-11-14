@@ -116,6 +116,9 @@ struct ServoTier {
     virtual void setup();
     virtual void process();
 
+    void enableServos();
+    void disableServos();
+
 protected:
     TwoWire &wire;
     PCA9685 controller;

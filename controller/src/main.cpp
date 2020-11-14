@@ -4,11 +4,13 @@
 #include <MovingEyes/TranslationTier.h>
 #include <PCA9685.h>
 #include <Wire.h>
+#include <elapsedMillis.h>
 #include <pinutils.h>
 
 #include "FunduinoJoystickShield/JoystickShield.h"
 #include "MovingEyes/MovingEyes.h"
 #include "MovingEyes/ServoTier.h"
+
 
 //--------------------------------------------------------------------------------------------------
 
@@ -44,7 +46,16 @@ struct Resources : public funduino::EventReceiver {
                            PCA9685_PhaseBalancer_Weaved,
                            true };
 
+
+#if defined(SERVO_IDLE_TIMEOUT_MS)
+    struct {
+        elapsedMillis elapsed_millis{ 0 };
+        bool is_idle{ false };
+    } timeout;
+#endif
+
     //----------------------------------------------------------------------------------------------
+
     void setup() {
         Serial.begin(SERIAL_BAUD_RATE);
         while(!Serial)
@@ -55,18 +66,51 @@ struct Resources : public funduino::EventReceiver {
         input_device.setup();
         eyes.setup();
         input_device.setEventReceiver(this);
+
+#if defined(SERVO_IDLE_TIMEOUT_MS)
+        Serial.print("Resources::setup: servo timeout (");
+        Serial.print(SERVO_IDLE_TIMEOUT_MS);
+        Serial.println("ms) is enabled; they will most likely jerk when en-/disabling");
+#endif
+
         Serial.println("Resources::setup: done");
 
-        Serial.println("\nJoystick Calibration:");
-        Serial.println("  1. Move the joystick in all axis' min/max position (turn a circle).");
-        Serial.println("  2. Leave the joystick alone to move to its idle position.");
-        Serial.println("  3. Have fun!\n");
+        Serial.println("\nResources::setup: Joystick Calibration:");
+        Serial.println(
+        "Resources::setup:   1. Move the joystick in all axis' min/max position (turn a circle).");
+        Serial.println(
+        "Resources::setup:   2. Leave the joystick alone to move to its idle position.");
+        Serial.println("Resources::setup:   3. Have fun!\n");
 
-        // TODO: setup timer to disable OUTPUT_ENABLE of PCA9685
+#if defined(SERVO_IDLE_TIMEOUT_MS)
+        timeout.elapsed_millis = 0;
+#endif
     }
 
     //----------------------------------------------------------------------------------------------
-    void process() { input_device.process(); }
+    void process() {
+        input_device.process();
+#if defined(SERVO_IDLE_TIMEOUT_MS)
+        if(timeout.elapsed_millis > SERVO_IDLE_TIMEOUT_MS) {
+
+            if(!timeout.is_idle) {
+#if defined(DEBUG_MAIN)
+                Serial.println("Resources::process: disable servos");
+#endif
+                eyes.disableServos();
+                timeout.is_idle = true;
+            }
+        } else {
+            if(timeout.is_idle) {
+#if defined(DEBUG_MAIN)
+                Serial.println("Resources::process: enable servos");
+#endif
+                eyes.enableServos();
+                timeout.is_idle = false;
+            }
+        }
+#endif
+    }
 
     //----------------------------------------------------------------------------------------------
 
@@ -152,6 +196,9 @@ struct Resources : public funduino::EventReceiver {
         }
 
         if(consumed) {
+#if defined(SERVO_IDLE_TIMEOUT_MS)
+            timeout.elapsed_millis = 0;
+#endif
             eyes.setActuation(actuation);
             eyes.process();
         }

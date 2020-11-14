@@ -26,6 +26,17 @@ void ServoTier::setup() {
 
 //--------------------------------------------------------------------------------------------------
 
+void ServoTier::enableServos() { process(); }
+
+//--------------------------------------------------------------------------------------------------
+
+void ServoTier::disableServos() {
+    static uint16_t idle_pwm[intern::RawActuation::CHANNELS_COUNT]{ 0 };
+    controller.setChannelsPWM(0, intern::RawActuation::CHANNELS_COUNT, idle_pwm);
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void ServoTier::process() {
     raw_actuation_values.channels_pwm[0] =
     servo_evaluator.pwmForAngle(raw_actuation_values.bearing.biasedValue());
