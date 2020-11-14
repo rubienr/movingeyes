@@ -1,20 +1,19 @@
 
-#include "EyesMechanics.h"
-#include "MovingEyes.h"
+#include "TranslationTier.h"
+#include "ServoTier.h"
 
-namespace EyeMech
-{
+namespace eyes {
+namespace translation {
 
 //--------------------------------------------------------------------------------------------------
 
-EyesMechanics::EyesMechanics(TwoWire &wire,
-                             const Limits &limits,
-                             const CompensationAngles &compensation,
-                             PCA9685_ServoEvaluator &evaluator,
-                             PCA9685_PhaseBalancer balancer,
-                             bool do_initial_move_zero)
-: MovingEyes(wire, evaluator, balancer), mechanic_limits{ limits }, do_initial_move_zero{ do_initial_move_zero }
-{
+TranslationTier::TranslationTier(TwoWire &wire,
+                                 const Limits &limits,
+                                 const CompensationAngles &compensation,
+                                 PCA9685_ServoEvaluator &evaluator,
+                                 PCA9685_PhaseBalancer balancer,
+                                 bool do_initial_move_zero)
+: ServoTier(wire, evaluator, balancer), mechanic_limits{ limits }, do_initial_move_zero{ do_initial_move_zero } {
     raw_actuation_values.elevation.bias = compensation.elevation;
     raw_actuation_values.bearing.bias = compensation.bearing;
 
@@ -27,18 +26,16 @@ EyesMechanics::EyesMechanics(TwoWire &wire,
 
 //--------------------------------------------------------------------------------------------------
 
-void EyesMechanics::setActuation(EyesActuation &eyes_actuation)
-{
+void TranslationTier::setActuation(servo::EyesActuation &eyes_actuation) {
     trimToMechanicalLimits(eyes_actuation);
-    *static_cast<BiasedEyesActuation *>(&raw_actuation_values) =
+    *static_cast<servo::BiasedEyesActuation *>(&raw_actuation_values) =
     toBiasedEyesActuation(eyes_actuation, raw_actuation_values);
     // intern::RawActuationHelper::println(raw_actuation_values, "EyesMechanics::setActuation: ");
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void EyesMechanics::trimToMechanicalLimits(EyesActuation &actuation)
-{
+void TranslationTier::trimToMechanicalLimits(servo::EyesActuation &actuation) {
     trim(actuation.left.lid.upper, mechanic_limits.left.lid.upper);
     trim(actuation.left.lid.lower, mechanic_limits.left.lid.upper);
 
@@ -51,13 +48,11 @@ void EyesMechanics::trimToMechanicalLimits(EyesActuation &actuation)
 
 //--------------------------------------------------------------------------------------------------
 
-void EyesMechanics::setup()
-{
-    MovingEyes::setup();
+void TranslationTier::setup() {
+    ServoTier::setup();
 
-    if(do_initial_move_zero)
-    {
-        EyesActuation a;
+    if(do_initial_move_zero) {
+        servo::EyesActuation a;
         setActuation(a);
     }
     process();
@@ -65,17 +60,17 @@ void EyesMechanics::setup()
 
 //--------------------------------------------------------------------------------------------------
 
-const Limits &EyesMechanics::getMechanicLimits() { return mechanic_limits; }
+const Limits &TranslationTier::getMechanicLimits() { return mechanic_limits; }
 
 //--------------------------------------------------------------------------------------------------
 
-BiasedEyesActuation &EyesMechanics::toBiasedEyesActuation(const EyesActuation &actuation_values,
-                                                          const intern::RawActuation &bias_values)
-{
-    static BiasedEyesActuation converted;
+servo::BiasedEyesActuation &
+TranslationTier::toBiasedEyesActuation(const servo::EyesActuation &actuation_values,
+                                       const servo::intern::RawActuation &bias_values) {
+    static servo::BiasedEyesActuation converted;
 
     // update bias values
-    converted = *static_cast<const BiasedEyesActuation *>(&bias_values);
+    converted = *static_cast<const servo::BiasedEyesActuation *>(&bias_values);
 
     // update actuation values
     converted.elevation.value = actuation_values.elevation;
@@ -92,5 +87,5 @@ BiasedEyesActuation &EyesMechanics::toBiasedEyesActuation(const EyesActuation &a
 }
 
 
-
-} // namespace EyeMech
+} // namespace translation
+} // namespace eyes

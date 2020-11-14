@@ -4,22 +4,17 @@
 #include "ShieldState.h"
 #include <pins_arduino.h>
 
-namespace Funduino
-{
+namespace funduino {
 
 //--------------------------------------------------------------------------------------------------
 
-struct ArduinoPinConfiguration
-{
-    struct Input
-    {
-        struct Keys
-        {
+struct ArduinoPinConfiguration {
+    struct Input {
+        struct Keys {
             const uint8_t a, b, c, d, e, f; // digital, buttons
         } keys;
 
-        struct Joystick
-        {
+        struct Joystick {
             const uint8_t x, y; // analogue, potentiometer
             const uint8_t z;    // digital, button
         } joystick;
@@ -29,8 +24,7 @@ struct ArduinoPinConfiguration
 
 //--------------------------------------------------------------------------------------------------
 
-class JoystickShield
-{
+class JoystickShield {
 public:
     explicit JoystickShield(const ArduinoPinConfiguration &io_pins);
 
@@ -96,4 +90,4 @@ protected:
 private:
 };
 
-} // namespace Funduino
+} // namespace funduino

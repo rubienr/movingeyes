@@ -6,13 +6,11 @@
 #include <HardwareSerial.h>
 #include <inttypes.h>
 
-namespace Funduino
-{
+namespace funduino {
 
 //--------------------------------------------------------------------------------------------------
 
-enum class KeyEventType : uint8_t
-{
+enum class KeyEventType : uint8_t {
     Pressed,  // 0
     Released, // 1
     Changed,  // 2
@@ -29,8 +27,7 @@ String stringFromEventType(const KeyEventType &et);
 
 //--------------------------------------------------------------------------------------------------
 
-struct ShieldEvent
-{
+struct ShieldEvent {
     KeyType key;
     KeyEventType event;
     ShieldState shield_state;
@@ -38,10 +35,9 @@ struct ShieldEvent
 
 //--------------------------------------------------------------------------------------------------
 
-struct ShieldEventHelper
-{
+struct ShieldEventHelper {
     static void print(const ShieldEvent &shield_event, const String & = "ShieldEventHelper::print: ");
     static void println(const ShieldEvent &shield_event, const String & = "ShieldEventHelper::print: ");
 };
 
-} // namespace Funduino
+} // namespace funduino

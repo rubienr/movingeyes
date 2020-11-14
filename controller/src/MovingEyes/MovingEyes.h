@@ -1,151 +1,75 @@
 #pragma once
 
-#include <PCA9685.h>
-#include <WString.h>
+#include "ServoTier.h"
+#include "TranslationTier.h"
+#include <inttypes.h>
 
-class TwoWire;
+namespace eyes {
 
-namespace EyeMech
-{
+//--------------------------------------------------------------------------------------------------
 
-struct MovingEyes;
-namespace intern
-{
-struct RawActuationHelper;
-}
+struct Position : public translation::Range {
+    // TODO: ref
+    Position(const Range &range, int8_t value);
 
+    int8_t value;
+};
+
+struct Constraint {
+    virtual int8_t trim(const Position &upper_lid, const Position &lower_lid) const = 0;
+};
+
+//--------------------------------------------------------------------------------------------------
+
+struct LidConstraint : public Constraint {
+    LidConstraint(int8_t min_distance);
+
+    int8_t trim(const Position &upper_lid, const Position &lower_lid) const override;
+
+    int8_t min_distance;
+};
+
+//--------------------------------------------------------------------------------------------------
+
+struct Constraints {
+    struct Lid {
+        LidConstraint lid;
+    };
+
+    Lid left;
+    Lid right;
+};
 //--------------------------------------------------------------------------------------------------
 
 /**
- * Structure for eyes actuation (elevation, bearing, lids).
+ * Implementation to interface with moving eyes with simple collision avoidance.
  */
-
-struct EyesActuation
-{
-    struct Lid
-    {
-        int8_t upper{ 0 };
-        int8_t lower{ 0 };
-    };
-
-    int8_t elevation{ 0 };
-    int8_t bearing{ 0 };
-
-    struct
-    {
-        Lid lid;
-    } left, right;
-};
-
-//--------------------------------------------------------------------------------------------------
-
-struct EyesActuationHelper
-{
-    static void print(const EyesActuation &o, const String &prefix = "EyesActuationHelper::print: ");
-    static void println(const EyesActuation &o, const String &prefix = "EyesActuationHelper::print: ");
-};
-
-//--------------------------------------------------------------------------------------------------
-
-/**
- * Structure for internal eyes actuation (elevation, bearing, lids).
- */
-struct BiasedEyesActuation
-{
-    struct BiasedValue
-    {
-        int8_t value;
-        int8_t bias;
-
-        int8_t biasedValue() { return value + bias; }
-    };
-
-    struct Lid
-    {
-        BiasedValue upper{ 0, 0 };
-        BiasedValue lower{ 0, 0 };
-    };
-
-    BiasedValue elevation{ 0, 0 };
-    BiasedValue bearing{ 0, 0 };
-
-    struct
-    {
-        Lid lid;
-    } left, right;
-};
-
-//--------------------------------------------------------------------------------------------------
-
-struct BiasedActuationHelper
-{
-    static void print(const BiasedEyesActuation &o, const String &prefix = "BiasedEyesActuationHelper::print: ");
-    static void println(const BiasedEyesActuation &o, const String &prefix = "BiasedEyesActuationHelper::print: ");
-};
-
-//--------------------------------------------------------------------------------------------------
-
-namespace intern
-{
-
-//--------------------------------------------------------------------------------------------------
-
-struct RawActuation : public BiasedEyesActuation
-{
-    friend RawActuationHelper;
-    friend MovingEyes;
-
-private:
-    static constexpr uint8_t CHANNELS_COUNT{ 12 };
-    uint16_t channels_pwm[CHANNELS_COUNT]{ 0 };
-};
-
-//--------------------------------------------------------------------------------------------------
-
-struct RawActuationHelper
-{
-    static void print(const RawActuation &o, const String &prefix = "RawActuationHelper::print: ");
-    static void println(const RawActuation &o, const String &prefix = "RawActuationHelper::print: ");
-};
-
-} // namespace intern
-
-//--------------------------------------------------------------------------------------------------
-
-/**
- * Implementation to interface with the eye mechanics.
- * Takes actuation values and projects them to the mechanics (move) without respecting any servo
- * limits or avoiding collisions.
- */
-struct MovingEyes
-{
+struct MovingEyes : public translation::TranslationTier {
     /**
-     * @param wire I2C communication wire
-     * @param servo_evaluator to trim the servo min/max and zero position
-     * @param balancer
+     *
+     * @param wire @see EyesMechanics constructor
+     * @param constraints constraints to apply to the actuation values to avoid collisions
+     * @param limits @see EyesMechanics constructor
+     * @param compensation @see EyesMechanics constructor
+     * @param evaluator @see EyesMechanics constructor
+     * @param balancer @see EyesMechanics constructor
+     * @param do_initial_move_zero @see EyesMechanics constructor
      */
     MovingEyes(TwoWire &wire,
-               PCA9685_ServoEvaluator &servo_evaluator,
-               PCA9685_PhaseBalancer balancer);
-    virtual ~MovingEyes() = default;
+               const Constraints &constraints,
+               const translation::Limits &limits,
+               const translation::CompensationAngles &compensation,
+               PCA9685_ServoEvaluator &evaluator,
+               PCA9685_PhaseBalancer balancer,
+               bool do_initial_move_zero);
 
-    virtual void setup();
-    virtual void process();
+    ~MovingEyes() override = default;
+
+    void setActuation(servo::EyesActuation &actuation) override;
 
 protected:
-    TwoWire &wire;
-    PCA9685 controller;
-    // TODO
-    PCA9685_ServoEvaluator &servo_evaluator;
-    intern::RawActuation raw_actuation_values;
+    Constraints constraints;
+    void trimToConstraints(servo::EyesActuation &constrained_actuation) const;
 };
 
-//--------------------------------------------------------------------------------------------------
-
-PCA9685_ServoEvaluator servoEvaluatorDefault();
-
-//--------------------------------------------------------------------------------------------------
-
-PCA9685_ServoEvaluator servoEvaluatorMg90sMicroservo();
-
-} // namespace EyeMech
+} // namespace eyes

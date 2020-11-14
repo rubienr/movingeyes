@@ -2,19 +2,14 @@
 
 #include <Arduino.h>
 #include <HardwareSerial.h>
-#include <MovingEyes/EyesMechanics.h>
+#include <MovingEyes/TranslationTier.h>
 #include <PCA9685.h>
 #include <Wire.h>
 #include <pinutils.h>
 
 #include "FunduinoJoystickShield/JoystickShield.h"
-#include "MovingEyes/Eyes.h"
 #include "MovingEyes/MovingEyes.h"
-
-//--------------------------------------------------------------------------------------------------
-
-using namespace Funduino;
-using namespace EyeMech;
+#include "MovingEyes/ServoTier.h"
 
 //--------------------------------------------------------------------------------------------------
 
@@ -23,7 +18,7 @@ namespace
 
 //--------------------------------------------------------------------------------------------------
 
-int8_t convertToDegree(const float &normalized, const Range &range)
+int8_t convertToDegree(const float &normalized, const eyes::translation::Range &range)
 {
     return static_cast<int8_t>(normalized * range.range + range.min);
 }
@@ -32,21 +27,21 @@ int8_t convertToDegree(const float &normalized, const Range &range)
 
 //--------------------------------------------------------------------------------------------------
 
-struct Resources : public EventReceiver
+struct Resources : public funduino::EventReceiver
 {
     struct PreInit
     {
         PCA9685_ServoEvaluator servo_evaluator{ config::getConfiguredServoEvaluator() };
-        Limits mechanic_limits{ config::getConfiguredLimits() };
-        CompensationAngles compensation{ config::getConfiguredCompensationAngles() };
-        Constraints constraints{ config::getConfiguredConstraints() };
+        eyes::translation::Limits mechanic_limits{ config::getConfiguredLimits() };
+        eyes::translation::CompensationAngles compensation{ config::getConfiguredCompensationAngles() };
+        eyes::Constraints constraints{ config::getConfiguredConstraints() };
     } pre_init;
 
     // TogglePin led_x{ LED_BUILTIN_TX };
     // TogglePin led_y{ LED_BUILTIN_RX };
 
-    JoystickShield input_device{ config::getConfiguredJoystickShieldPinout() };
-    Eyes eyes{ Wire,
+    funduino::JoystickShield input_device{ config::getConfiguredJoystickShieldPinout() };
+    eyes::MovingEyes eyes{ Wire,
                pre_init.constraints,
                pre_init.mechanic_limits,
                pre_init.compensation,
@@ -78,27 +73,27 @@ struct Resources : public EventReceiver
 
     //----------------------------------------------------------------------------------------------
 
-    bool take(const Funduino::ShieldEvent &e) override
+    bool take(const funduino::ShieldEvent &e) override
     {
-        static EyesActuation actuation;
+        static eyes::servo::EyesActuation actuation;
         ScopedTogglePin led{ LED_BUILTIN };
         bool consumed{ false };
-        ShieldEventHelper::println(e, "Resources::take: ");
+        funduino::ShieldEventHelper::println(e, "Resources::take: ");
 
         switch(e.key)
         {
 
-        case KeyType::A:
+        case funduino::KeyType::A:
             break;
 
-        case KeyType::B:
-            if(!consumed && e.event == KeyEventType::Pressed)
+        case funduino::KeyType::B:
+            if(!consumed && e.event == funduino::KeyEventType::Pressed)
             {
                 actuation.right.lid.upper = 0;
                 actuation.right.lid.lower = 0;
                 consumed = true;
             }
-            else if(!consumed && e.event == KeyEventType::Released)
+            else if(!consumed && e.event == funduino::KeyEventType::Released)
             {
                 actuation.right.lid.upper = 30;
                 actuation.right.lid.lower = -30;
@@ -106,17 +101,17 @@ struct Resources : public EventReceiver
             }
             break;
 
-        case KeyType::C:
+        case funduino::KeyType::C:
             break;
 
-        case KeyType::D:
-            if(!consumed && e.event == KeyEventType::Pressed)
+        case funduino::KeyType::D:
+            if(!consumed && e.event ==funduino::KeyEventType::Pressed)
             {
                 actuation.left.lid.upper = 0;
                 actuation.left.lid.lower = 0;
                 consumed = true;
             }
-            else if(!consumed && e.event == KeyEventType::Released)
+            else if(!consumed && e.event == funduino::KeyEventType::Released)
             {
                 actuation.left.lid.upper = 30;
                 actuation.left.lid.lower = -30;
@@ -124,15 +119,15 @@ struct Resources : public EventReceiver
             }
             break;
 
-        case KeyType::E:
+        case funduino::KeyType::E:
             break;
 
-        case KeyType::F:
+        case funduino::KeyType::F:
             break;
 
-        case KeyType::X:
-        case KeyType::Y:
-            if(!consumed && e.event == KeyEventType::Changed)
+        case funduino::KeyType::X:
+        case funduino::KeyType::Y:
+            if(!consumed && e.event == funduino::KeyEventType::Changed)
             {
 
                 actuation.bearing = convertToDegree(input_device.getJoystickData().x.getNormalizedValue(),
@@ -146,8 +141,8 @@ struct Resources : public EventReceiver
             }
             break;
 
-        case KeyType::Z:
-            if(!consumed && e.event == KeyEventType::Pressed)
+        case funduino::KeyType::Z:
+            if(!consumed && e.event == funduino::KeyEventType::Pressed)
             {
                 actuation.left.lid.upper = 0;
                 actuation.left.lid.lower = 0;
@@ -155,7 +150,7 @@ struct Resources : public EventReceiver
                 actuation.right.lid.lower = 0;
                 consumed = true;
             }
-            else if(!consumed && e.event == KeyEventType::Released)
+            else if(!consumed && e.event == funduino::KeyEventType::Released)
             {
                 actuation.left.lid.upper = 50;
                 actuation.left.lid.lower = -50;

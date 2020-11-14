@@ -1,12 +1,10 @@
 #include "Event.h"
 
-namespace Funduino
-{
+namespace funduino {
 
 //--------------------------------------------------------------------------------------------------
 
-void Funduino::ShieldEventHelper::print(const Funduino::ShieldEvent &shield_event, const String &prefix)
-{
+void ShieldEventHelper::print(const ShieldEvent &shield_event, const String &prefix) {
     String se{ prefix };
 
     se.concat("key=");
@@ -29,19 +27,17 @@ void Funduino::ShieldEventHelper::print(const Funduino::ShieldEvent &shield_even
 
 //--------------------------------------------------------------------------------------------------
 
-void Funduino::ShieldEventHelper::println(const Funduino::ShieldEvent &shield_event, const String &prefix)
-{
+void ShieldEventHelper::println(const ShieldEvent &shield_event, const String &prefix) {
     print(shield_event, prefix);
     Serial.println();
 }
 
 //--------------------------------------------------------------------------------------------------
 
-String stringFromEventType(const Funduino::KeyEventType &et)
-{
+String stringFromEventType(const KeyEventType &et) {
     String names[]{ "pressed", "released", "changed", "none" };
 
     return names[uint8FromEventType(et)].c_str();
 }
 
-} // namespace Funduino
+} // namespace funduino

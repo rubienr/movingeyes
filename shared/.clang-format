@@ -17,6 +17,7 @@ BreakBeforeBraces: Allman
 # ShortLambdaStyle: All
 AlignAfterOpenBracket: Align
 CompactNamespaces: false
+FixNamespaceComments: true
 BreakBeforeTernaryOperators: false
 #BreakConstructorInitializersBeforeComma: false
 BreakConstructorInitializers: BeforeColon
@@ -55,8 +56,9 @@ Standard: Cpp11
 TabWidth: 4
 UseTab: Never
 
-##BreakBeforeBraces: Custom
-##BraceWrapping:
-#  AfterEnum: true
-#  AfterStruct: true
-#  SplitEmptyFunction: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterNamespace: false
+# AfterEnum: true
+# AfterStruct: true
+# SplitEmptyFunction: false

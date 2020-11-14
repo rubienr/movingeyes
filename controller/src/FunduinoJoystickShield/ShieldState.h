@@ -3,13 +3,11 @@
 #include "Key.h"
 #include <HardwareSerial.h>
 
-namespace Funduino
-{
+namespace funduino {
 
 //--------------------------------------------------------------------------------------------------
 
-struct Potentiometer
-{
+struct Potentiometer {
     uint16_t min{ 1023 }, max{ 1 }, center{ 511 }, value = { 511 };
 
     void update(const uint16_t &new_value);
@@ -27,10 +25,8 @@ struct Potentiometer
 
 //--------------------------------------------------------------------------------------------------
 
-struct ShieldState
-{
-    struct KeysState
-    {
+struct ShieldState {
+    struct KeysState {
         KeyStateType a{ KeyStateType::Undefined }, b{ KeyStateType::Undefined },
         c{ KeyStateType::Undefined }, d{ KeyStateType::Undefined }, e{ KeyStateType::Undefined },
         f{ KeyStateType::Undefined };
@@ -39,8 +35,7 @@ struct ShieldState
         bool operator!=(const KeysState &other) const;
     };
 
-    struct Joystick
-    {
+    struct Joystick {
         KeyStateType z{ KeyStateType::Undefined };
         Potentiometer x, y;
 
@@ -59,10 +54,9 @@ struct ShieldState
 
 //--------------------------------------------------------------------------------------------------
 
-struct ShieldStateHelper
-{
+struct ShieldStateHelper {
     static void print(const ShieldState &state, const String &prefix = "ShieldStateHelper::print: ");
     static void println(const ShieldState &state, const String &prefix = "ShieldStateHelper::print: ");
 };
 
-} //  namespace Funduino
+} // namespace funduino

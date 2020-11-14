@@ -2,14 +2,12 @@
 
 #include "Event.h"
 
-namespace Funduino
-{
+namespace funduino {
 
 //--------------------------------------------------------------------------------------------------
 
-struct EventReceiver
-{
-    virtual bool take(const Funduino::ShieldEvent &e) = 0;
+struct EventReceiver {
+    virtual bool take(const ShieldEvent &e) = 0;
 };
 
-} // namespace Funduino
+} // namespace funduino

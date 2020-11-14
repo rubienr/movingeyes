@@ -2,8 +2,7 @@
 #include "ShieldState.h"
 #include <Arduino.h>
 
-namespace Funduino
-{
+namespace funduino {
 
 //--------------------------------------------------------------------------------------------------
 
@@ -11,8 +10,7 @@ JoystickShield::JoystickShield(const ArduinoPinConfiguration &io_pins) : pins(io
 
 //--------------------------------------------------------------------------------------------------
 
-void JoystickShield::setup()
-{
+void JoystickShield::setup() {
     pinMode(pins.input.keys.a, INPUT);
     pinMode(pins.input.keys.b, INPUT);
     pinMode(pins.input.keys.c, INPUT);
@@ -38,8 +36,7 @@ void JoystickShield::setup()
 
 //--------------------------------------------------------------------------------------------------
 
-bool JoystickShield::process()
-{
+bool JoystickShield::process() {
 
     ShieldState &new_state = readState();
 
@@ -48,28 +45,29 @@ bool JoystickShield::process()
 
     // on fuzzy x/y change
     if(!isWithinDelta(new_state.joystick.x.value, state.joystick.x.value, min_potentiometer_readout_delta) ||
-       !isWithinDelta(new_state.joystick.y.value, state.joystick.y.value, min_potentiometer_readout_delta))
-    { has_changed = true; }
+       !isWithinDelta(new_state.joystick.y.value, state.joystick.y.value, min_potentiometer_readout_delta)) {
+        has_changed = true;
+    }
 
     // on z-key event
-    if(state.joystick.z != new_state.joystick.z) { has_changed = true; }
+    if(state.joystick.z != new_state.joystick.z) {
+        has_changed = true;
+    }
 
     // update state and trigger events
-    if(has_changed)
-    {
+    if(has_changed) {
         // ShieldStateHelper::println(state, "JoystickShield::process: old state ");
         // ShieldStateHelper::println(new_state, "JoystickShield::process: new state ");
-        if(event_receiver != nullptr)
-        {
+        if(event_receiver != nullptr) {
             static ShieldEvent event;
             updateEvent(event, new_state);
-            //ShieldEventHelper::println(event);
+            // ShieldEventHelper::println(event);
             state = new_state;
 
-            if(isCalibrated()) { event_receiver->take(event); }
-        }
-        else
-        {
+            if(isCalibrated()) {
+                event_receiver->take(event);
+            }
+        } else {
             state = new_state;
         }
     }
@@ -79,8 +77,7 @@ bool JoystickShield::process()
 
 //--------------------------------------------------------------------------------------------------
 
-ShieldState &JoystickShield::readState()
-{
+ShieldState &JoystickShield::readState() {
     static ShieldState current_state;
 
     current_state.keys.a = keyStateFromUint8(static_cast<uint8_t>(digitalRead(pins.input.keys.a)));
@@ -102,10 +99,8 @@ ShieldState &JoystickShield::readState()
 
 //--------------------------------------------------------------------------------------------------
 
-bool JoystickShield::setEventReceiver(EventReceiver *receiver)
-{
-    if(event_receiver != receiver)
-    {
+bool JoystickShield::setEventReceiver(EventReceiver *receiver) {
+    if(event_receiver != receiver) {
         event_receiver = receiver;
         return true;
     }
@@ -114,8 +109,7 @@ bool JoystickShield::setEventReceiver(EventReceiver *receiver)
 
 //--------------------------------------------------------------------------------------------------
 
-void JoystickShield::updateEvent(ShieldEvent &event, const ShieldState &new_state) const
-{
+void JoystickShield::updateEvent(ShieldEvent &event, const ShieldState &new_state) const {
     event.event = KeyEventType::None;
     event.key = KeyType::Void;
 
@@ -141,11 +135,16 @@ void JoystickShield::updateEvent(ShieldEvent &event, const ShieldState &new_stat
 
 //--------------------------------------------------------------------------------------------------
 
-KeyEventType JoystickShield::eventTypeFromKeyState(KeyStateType ks)
-{
-    if(ks == KeyStateType::Pressed) { return KeyEventType::Pressed; }
-    if(ks == KeyStateType::Released) { return KeyEventType::Released; }
-    if(ks == KeyStateType::Undefined) { return KeyEventType::None; }
+KeyEventType JoystickShield::eventTypeFromKeyState(KeyStateType ks) {
+    if(ks == KeyStateType::Pressed) {
+        return KeyEventType::Pressed;
+    }
+    if(ks == KeyStateType::Released) {
+        return KeyEventType::Released;
+    }
+    if(ks == KeyStateType::Undefined) {
+        return KeyEventType::None;
+    }
     return KeyEventType::None;
 }
 
@@ -154,9 +153,10 @@ KeyEventType JoystickShield::eventTypeFromKeyState(KeyStateType ks)
 bool JoystickShield::updateIfKeyEvent(ShieldEvent &shield_event,
                                       const KeyType key,
                                       const KeyStateType current_key_state,
-                                      const KeyStateType new_key_state)
-{
-    if(current_key_state == new_key_state) { return false; }
+                                      const KeyStateType new_key_state) {
+    if(current_key_state == new_key_state) {
+        return false;
+    }
 
     shield_event.key = key;
     shield_event.event = eventTypeFromKeyState(new_key_state);
@@ -166,8 +166,7 @@ bool JoystickShield::updateIfKeyEvent(ShieldEvent &shield_event,
 
 //--------------------------------------------------------------------------------------------------
 
-bool JoystickShield::isWithinDelta(const uint16_t &value, const uint16_t &new_value, const uint16_t &min_delta)
-{
+bool JoystickShield::isWithinDelta(const uint16_t &value, const uint16_t &new_value, const uint16_t &min_delta) {
     int32_t signed_value = value;
     int32_t min = static_cast<int32_t>(new_value) - min_delta;
     int32_t max = static_cast<int32_t>(new_value) + min_delta;
@@ -180,9 +179,10 @@ bool JoystickShield::updateIfJoystickEvent(ShieldEvent &event,
                                            KeyType key,
                                            const uint16_t &current_value,
                                            const uint16_t &new_value,
-                                           const uint16_t &min_delta)
-{
-    if(isWithinDelta(current_value, new_value, min_delta)) { return false; }
+                                           const uint16_t &min_delta) {
+    if(isWithinDelta(current_value, new_value, min_delta)) {
+        return false;
+    }
 
     event.key = key;
     event.event = KeyEventType::Changed;
@@ -192,17 +192,17 @@ bool JoystickShield::updateIfJoystickEvent(ShieldEvent &event,
 
 //--------------------------------------------------------------------------------------------------
 
-void JoystickShield::setJoystickMinDelta(uint16_t min_delta)
-{
+void JoystickShield::setJoystickMinDelta(uint16_t min_delta) {
     min_potentiometer_readout_delta = min_delta;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-bool JoystickShield::isCalibrated()
-{
+bool JoystickShield::isCalibrated() {
     static bool calibration_finished{ false };
-    if(calibration_finished) { return true; }
+    if(calibration_finished) {
+        return true;
+    }
 
     constexpr const uint16_t max_expected_value{ 1023 };
     constexpr const uint16_t mandatory_min_seen_max_potentiometer_value{ static_cast<uint16_t>(0.9 * max_expected_value) };
@@ -211,8 +211,12 @@ bool JoystickShield::isCalibrated()
     static bool is_calibrated{ false };
 
     auto verify_calibration = [&](const Potentiometer &p) {
-        if(p.min > mandatory_max_seen_min_potentiometer_value) { return false; }
-        if(p.max < mandatory_min_seen_max_potentiometer_value) { return false; }
+        if(p.min > mandatory_max_seen_min_potentiometer_value) {
+            return false;
+        }
+        if(p.max < mandatory_min_seen_max_potentiometer_value) {
+            return false;
+        }
         return true;
     };
 
@@ -229,4 +233,4 @@ bool JoystickShield::isCalibrated()
     return calibration_finished;
 }
 
-} // namespace Funduino
+} // namespace funduino

@@ -23,8 +23,8 @@ pio run --target upload
 ```
 Wired Setup
   _______                ___________             ____________
- | Eyes  |              | PCA       |           | Arduino L. |
- | mech. | ←--6x PWM--- | 9685      | ←--i2c--- |            | 
+ | Eyes  |              | PCA 9685  |           |  Arduino   |
+ | mech. | ←--6x PWM--- |           | ←--i2c--- |            | 
  |       |              | I2C slave |           | I2C master |          
  |_______|              |___________|           |____________|
                                                       ↑
@@ -60,13 +60,14 @@ Servos are as from Monika's perspective seen:
 1. PCA9685 4 -> right upper lid
 1. PCA9685 5 -> right lower lid
 
-### Wireless (opional)
+### Wireless (optional)
 TBD: Work in progress ...
+TBD: Work stalled because of bug - arduino framework + UDP issue
 ```
 Wireless Setup
   _______                ___________             ____________
- | Eyes  |              | PCA       |           | Wemos-     |
- | mech. | ←--6x PWM--- | 9685      | ←--i2c--- | D1 mini    | 
+ | Eyes  |              | PCA 9685  |           | Wemos-     |
+ | mech. | ←--6x PWM--- |           | ←--i2c--- | D1 mini    | 
  |       |              | I2C slave |           | I2C master |          
  |_______|              |___________|           |____________|
                                                       ↑

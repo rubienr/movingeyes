@@ -1,24 +1,21 @@
 #pragma once
 
-#include "MovingEyes.h"
+#include "ServoTier.h"
 
 #include <HardwareSerial.h>
 
-namespace EyeMech
-{
+namespace eyes {
+namespace translation {
 
 
 //--------------------------------------------------------------------------------------------------
 
-struct Range
-{
+struct Range {
     int8_t min, max; // mandatory
     uint8_t range;   // can be computed with #autoComplete()
 
-    void autoComplete()
-    {
-        if(max < min)
-        {
+    void autoComplete() {
+        if(max < min) {
             int8_t t{ min };
             min = max;
             max = t;
@@ -33,17 +30,13 @@ struct Range
 /**
  * The min and max limits (in degrees) the respective servo should move beyond.
  */
-struct Limits
-{
-    struct
-    {
-        struct Lid
-        {
+struct Limits {
+    struct {
+        struct Lid {
             Range upper;
             Range lower;
 
-            void autoComplete()
-            {
+            void autoComplete() {
                 upper.autoComplete();
                 lower.autoComplete();
             }
@@ -56,8 +49,7 @@ struct Limits
     Range elevation;
     Range bearing;
 
-    void autoComplete()
-    {
+    void autoComplete() {
         left.autoComplete();
         right.autoComplete();
         elevation.autoComplete();
@@ -66,12 +58,9 @@ struct Limits
 };
 //--------------------------------------------------------------------------------------------------
 
-struct CompensationAngles
-{
-    struct
-    {
-        struct Lid
-        {
+struct CompensationAngles {
+    struct {
+        struct Lid {
             int8_t upper;
             int8_t lower;
 
@@ -91,8 +80,7 @@ struct CompensationAngles
  * servo limits. Caution: This implementation is not aware of mechanical collisions (for example:
  * upper and lower eye lids).
  */
-struct EyesMechanics : public MovingEyes
-{
+struct TranslationTier : public servo::ServoTier {
     /**
      *
      * @param wire @see MovingEyes constructor
@@ -102,18 +90,18 @@ struct EyesMechanics : public MovingEyes
      * @param balancer @see MovingEyes constructor
      * @param do_initial_move_zero  @see MovingEyes constructor
      */
-    EyesMechanics(TwoWire &wire,
-                  const Limits &limits,
-                  const CompensationAngles &compensation,
-                  PCA9685_ServoEvaluator &evaluator,
-                  PCA9685_PhaseBalancer balancer,
-                  bool do_initial_move_zero);
+    TranslationTier(TwoWire &wire,
+                    const Limits &limits,
+                    const CompensationAngles &compensation,
+                    PCA9685_ServoEvaluator &evaluator,
+                    PCA9685_PhaseBalancer balancer,
+                    bool do_initial_move_zero);
 
-    ~EyesMechanics() override = default;
+    ~TranslationTier() override = default;
 
     void setup() override;
 
-    virtual void setActuation(EyesActuation &actuation);
+    virtual void setActuation(servo::EyesActuation &actuation);
 
     const Limits &getMechanicLimits();
 
@@ -122,25 +110,22 @@ protected:
     const bool do_initial_move_zero;
 
 
-    void trimToMechanicalLimits(EyesActuation &actuation);
+    void trimToMechanicalLimits(servo::EyesActuation &actuation);
 
     template <typename type_t> void trim(type_t &value, const Range &range);
-    BiasedEyesActuation &toBiasedEyesActuation(const EyesActuation &actuation_values,
-                                               const intern::RawActuation &bias_values);
+    servo::BiasedEyesActuation &toBiasedEyesActuation(const servo::EyesActuation &actuation_values,
+                                                      const servo::intern::RawActuation &bias_values);
 };
 
 //--------------------------------------------------------------------------------------------------
 
-template <typename type_t> void EyesMechanics::trim(type_t &value, const Range &range)
-{
-    if(value < range.min)
-    {
+template <typename type_t> void TranslationTier::trim(type_t &value, const Range &range) {
+    if(value < range.min) {
         value = range.min;
-    }
-    else if(value > range.max)
-    {
+    } else if(value > range.max) {
         value = range.max;
     }
 }
 
-} // namespace EyeMech
+} // namespace translation
+} // namespace eyes

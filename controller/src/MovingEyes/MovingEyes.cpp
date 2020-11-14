@@ -1,185 +1,77 @@
 #include "MovingEyes.h"
 
 #include <HardwareSerial.h>
-#include <Wire.h>
-
-namespace EyeMech
-{
 
 //--------------------------------------------------------------------------------------------------
 
-MovingEyes::MovingEyes(TwoWire &wire, PCA9685_ServoEvaluator &servo_evaluator, PCA9685_PhaseBalancer balancer)
-: wire{ wire }, controller{ this->wire, balancer }, servo_evaluator{ servo_evaluator }
-{
+namespace eyes {
+
+//--------------------------------------------------------------------------------------------------
+
+Position::Position(const Range &range, int8_t value) : Range(range), value{ value } {
+    autoComplete();
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void MovingEyes::setup()
-{
-    wire.begin();
-    wire.setClock(400000);
+int8_t LidConstraint::trim(const Position &upper_lid, const Position &lower_lid) const {
+    // when closed, lids can not go beyond the limit
+    int8_t new_lower_lid_value{ lower_lid.value };
 
-    controller.resetDevices();
-    controller.init(0x0);
-    controller.setPWMFrequency(50);
-}
+    if((lower_lid.value + min_distance) >= upper_lid.value) {
+        Serial.print("upper: ");
+        Serial.print(upper_lid.value);
+        Serial.print(" lower: ");
+        Serial.print(lower_lid.value);
 
-//--------------------------------------------------------------------------------------------------
+        new_lower_lid_value = lower_lid.value + min_distance;
 
-void MovingEyes::process()
-{
-    raw_actuation_values.channels_pwm[0] =
-    servo_evaluator.pwmForAngle(raw_actuation_values.bearing.biasedValue());
-    raw_actuation_values.channels_pwm[1] =
-    servo_evaluator.pwmForAngle(raw_actuation_values.elevation.biasedValue());
-    raw_actuation_values.channels_pwm[2] =
-    servo_evaluator.pwmForAngle(-raw_actuation_values.left.lid.upper.biasedValue());
-    raw_actuation_values.channels_pwm[3] =
-    servo_evaluator.pwmForAngle(-raw_actuation_values.left.lid.lower.biasedValue());
-    raw_actuation_values.channels_pwm[4] =
-    servo_evaluator.pwmForAngle(raw_actuation_values.right.lid.upper.biasedValue());
-    raw_actuation_values.channels_pwm[5] =
-    servo_evaluator.pwmForAngle(raw_actuation_values.right.lid.lower.biasedValue());
-
-    intern::RawActuationHelper::println(raw_actuation_values, "MovingEyes::process: ");
-
-    controller.setChannelsPWM(0, intern::RawActuation::CHANNELS_COUNT, raw_actuation_values.channels_pwm);
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void EyesActuationHelper::print(const EyesActuation &o, const String &prefix)
-{
-    Serial.print(prefix);
-
-    Serial.print(" B=");
-    Serial.print(o.bearing);
-    Serial.print(" E=");
-    Serial.print(o.elevation);
-
-    Serial.print(" left.lid.upper=");
-    Serial.print(o.left.lid.upper);
-    Serial.print(" left.lid.lower=");
-    Serial.print(o.left.lid.lower);
-
-    Serial.print(" right.lid.upper=");
-    Serial.print(o.right.lid.upper);
-    Serial.print(" right.lid.lower=");
-    Serial.print(o.right.lid.lower);
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void EyesActuationHelper::println(const EyesActuation &o, const String &prefix)
-{
-    print(o, prefix);
-    Serial.println();
-}
-
-
-//--------------------------------------------------------------------------------------------------
-
-void BiasedActuationHelper::print(const BiasedEyesActuation &o, const String &prefix)
-{
-    Serial.print(prefix);
-
-    Serial.print(" B={");
-    Serial.print(o.bearing.value);
-    Serial.print(", ");
-    Serial.print(o.bearing.bias);
-    Serial.print("}");
-
-    Serial.print(" E={");
-    Serial.print(o.elevation.value);
-    Serial.print(", ");
-    Serial.print(o.elevation.bias);
-    Serial.print("}");
-
-    Serial.print(" left.lid.upper={");
-    Serial.print(o.left.lid.upper.value);
-    Serial.print(", ");
-    Serial.print(o.left.lid.upper.bias);
-    Serial.print("}");
-
-    Serial.print(" left.lid.lower={");
-    Serial.print(o.left.lid.lower.value);
-    Serial.print(", ");
-    Serial.print(o.left.lid.lower.bias);
-    Serial.print("}");
-
-    Serial.print(" right.lid.upper={");
-    Serial.print(o.right.lid.upper.value);
-    Serial.print(", ");
-    Serial.print(o.right.lid.upper.bias);
-    Serial.print("}");
-
-    Serial.print(" right.lid.lower={");
-    Serial.print(o.right.lid.lower.value);
-    Serial.print(", ");
-    Serial.print(o.right.lid.lower.bias);
-    Serial.print("}");
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void BiasedActuationHelper::println(const BiasedEyesActuation &o, const String &prefix)
-{
-    print(o, prefix);
-    Serial.println();
-}
-
-
-//--------------------------------------------------------------------------------------------------
-namespace intern
-{
-
-//--------------------------------------------------------------------------------------------------
-
-void RawActuationHelper::print(const RawActuation &o, const String &prefix)
-{
-    BiasedActuationHelper::print(o, prefix);
-
-
-    Serial.print(" raw:values:{");
-    for(uint8_t idx = 0; idx < RawActuation::CHANNELS_COUNT; ++idx)
-    {
-        Serial.print(" [");
-        Serial.print(idx);
-        Serial.print("]=");
-        Serial.print(o.channels_pwm[idx]);
+        Serial.print(" => lower: ");
+        Serial.println(lower_lid.value);
     }
-    Serial.print(" }");
+
+    return new_lower_lid_value;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void RawActuationHelper::println(const RawActuation &o, const String &prefix)
-{
-    print(o, prefix);
-    Serial.println();
-}
+LidConstraint::LidConstraint(int8_t min_distance) : min_distance{ min_distance } {}
 
-} // namespace intern
-
-/*
 //--------------------------------------------------------------------------------------------------
 
-PCA9685_ServoEvaluator servoEvaluatorMg90sMicroservo()
-{
-    constexpr uint16_t min = 102, max = 512,
-                       center = static_cast<uint16_t>((static_cast<float>(max) - min) / 2 + min);
-
-    constexpr int16_t center_bias = +5;
-    constexpr int16_t min_bias = -7;
-    constexpr int16_t max_bias = +18;
-
-    return { min + min_bias, center + center_bias, max + max_bias };
+MovingEyes::MovingEyes(TwoWire &wire,
+                       const Constraints &constraints,
+                       const translation::Limits &limits,
+                       const translation::CompensationAngles &compensation,
+                       PCA9685_ServoEvaluator &evaluator,
+                       PCA9685_PhaseBalancer balancer,
+                       bool do_initial_move_zero)
+: TranslationTier(wire, limits, compensation, evaluator, balancer, do_initial_move_zero), constraints{ constraints } {
 }
 
 //--------------------------------------------------------------------------------------------------
 
-PCA9685_ServoEvaluator servoEvaluatorDefault() { return {}; }
-*/
+void MovingEyes::setActuation(servo::EyesActuation &actuation) {
+    trimToConstraints(actuation);
+    servo::EyesActuationHelper::println(actuation, "Eyes::setActuation: ");
+    TranslationTier::setActuation(actuation);
+}
 
-} // namespace EyeMech
+//--------------------------------------------------------------------------------------------------
+
+void MovingEyes::trimToConstraints(servo::EyesActuation &constrained_actuation) const {
+    // apply eyes constraints: elevation and bearing dominate above lid
+    // if eyes direction is top/bottom-left/right the eye mechanics collides with the eyes lids
+    // TODO: model distance from eye to lid depending on elevation/bearing
+
+    // apply lid constraints: upper dominates above lower
+    constrained_actuation.left.lid.lower =
+    constraints.left.lid.trim({ mechanic_limits.left.lid.upper, constrained_actuation.left.lid.upper },
+                              { mechanic_limits.left.lid.lower, constrained_actuation.left.lid.lower });
+
+    constrained_actuation.right.lid.lower =
+    constraints.right.lid.trim({ mechanic_limits.right.lid.upper, constrained_actuation.right.lid.upper },
+                               { mechanic_limits.right.lid.lower, constrained_actuation.right.lid.lower });
+}
+
+} // namespace eyes

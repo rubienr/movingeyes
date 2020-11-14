@@ -2,31 +2,33 @@
 
 // -------------------------------------------------------------------------------------------------
 
+#include <MovingEyes/TranslationTier.h>
 class PCA9685_ServoEvaluator;
 
-namespace EyeMech
-{
+namespace eyes {
+namespace translation {
+
 struct Limits;
 struct CompensationAngles;
+
+} // namespace translation
+namespace servo {}
 struct Constraints;
+} // namespace eyes
 
-} // namespace EyeMech
-
-namespace Funduino
-{
+namespace funduino {
 
 struct ArduinoPinConfiguration;
 
-} // namespace Funduino
+} // namespace funduino
 // -------------------------------------------------------------------------------------------------
 
-namespace config
-{
+namespace config {
 PCA9685_ServoEvaluator getConfiguredServoEvaluator();
-EyeMech::Limits getConfiguredLimits();
-EyeMech::CompensationAngles getConfiguredCompensationAngles();
-EyeMech::Constraints getConfiguredConstraints();
-Funduino::ArduinoPinConfiguration getConfiguredJoystickShieldPinout();
+eyes::translation::Limits getConfiguredLimits();
+eyes::translation::CompensationAngles getConfiguredCompensationAngles();
+eyes::Constraints getConfiguredConstraints();
+funduino::ArduinoPinConfiguration getConfiguredJoystickShieldPinout();
 } // namespace config
 
 // -------------------------------------------------------------------------------------------------
@@ -66,24 +68,16 @@ Funduino::ArduinoPinConfiguration getConfiguredJoystickShieldPinout();
 //#define DEBUG_TRANSLATION_TIER
 
 #define PHYSICAL_LIMITITS_BEARING_DEGREE \
-    {                                    \
-        -55 /* min */, 55 /* max */      \
-    }
+    { -55 /* min */, 55 /* max */ }
 
 #define PHYSICAL_LIMITITS_ELEVATION_DEGREE \
-    {                                      \
-        -55 /* min */, 50 /* max */        \
-    }
+    { -55 /* min */, 50 /* max */ }
 
 #define PHYSICAL_LIMITITS_LID_LOWER_DEGREE \
-    {                                      \
-        -63 /* min */, 75 /* max */        \
-    }
+    { -63 /* min */, 75 /* max */ }
 
 #define PHYSICAL_LIMITITS_LID_UPPER_DEGREE \
-    {                                      \
-        -80 /* min */, 63 /* max */        \
-    }
+    { -80 /* min */, 63 /* max */ }
 
 #define PHYSICAL_LIMITS_DEGREE            \
     { {                                   \

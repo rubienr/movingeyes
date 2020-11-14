@@ -2,57 +2,48 @@
 
 #include <Arduino.h>
 
-namespace Funduino
-{
+namespace funduino {
 
 //--------------------------------------------------------------------------------------------------
 
-bool ShieldState::KeysState::operator==(const Funduino::ShieldState::KeysState &other) const
-{
+bool ShieldState::KeysState::operator==(const ShieldState::KeysState &other) const {
     return a == other.a && b == other.b && c == other.c && d == other.d && e == other.e &&
            f == other.f;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-bool ShieldState::KeysState::operator!=(const Funduino::ShieldState::KeysState &other) const
-{
+bool ShieldState::KeysState::operator!=(const ShieldState::KeysState &other) const {
     return !this->operator==(other);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-bool ShieldState::Joystick::operator==(const Funduino::ShieldState::Joystick &other) const
-{
+bool ShieldState::Joystick::operator==(const ShieldState::Joystick &other) const {
     return x == other.x && y == other.y && z == other.z;
 }
 
 //--------------------------------------------------------------------------------------------------
 
-bool ShieldState::Joystick::operator!=(const Funduino::ShieldState::Joystick &other) const
-{
+bool ShieldState::Joystick::operator!=(const ShieldState::Joystick &other) const {
     return !this->operator==(other);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-bool ShieldState::operator==(const Funduino::ShieldState &other) const
-{
+bool ShieldState::operator==(const ShieldState &other) const {
     return keys.operator==(other.keys) && joystick.operator==(other.joystick);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-bool ShieldState::operator!=(const Funduino::ShieldState &other) const
-{
-    return !this->operator==(other);
-}
+bool ShieldState::operator!=(const ShieldState &other) const { return !this->operator==(other); }
 
 //--------------------------------------------------------------------------------------------------
 
-ShieldState &ShieldState::operator=(const ShieldState &rhs)
-{
-    if(this == &rhs) return *this;
+ShieldState &ShieldState::operator=(const ShieldState &rhs) {
+    if(this == &rhs)
+        return *this;
 
     keys = rhs.keys;
 
@@ -66,8 +57,7 @@ ShieldState &ShieldState::operator=(const ShieldState &rhs)
 
 //--------------------------------------------------------------------------------------------------
 
-void ShieldStateHelper::print(const ShieldState &state, const String &prefix)
-{
+void ShieldStateHelper::print(const ShieldState &state, const String &prefix) {
     String s{ prefix };
 
     s.concat("A=");
@@ -109,8 +99,7 @@ void ShieldStateHelper::print(const ShieldState &state, const String &prefix)
 
 //--------------------------------------------------------------------------------------------------
 
-void ShieldStateHelper::println(const ShieldState &state, const String &prefix)
-{
+void ShieldStateHelper::println(const ShieldState &state, const String &prefix) {
     print(state, prefix);
     Serial.println();
 }
@@ -125,8 +114,7 @@ bool Potentiometer::operator!=(const Potentiometer &other) const { return !opera
 
 //--------------------------------------------------------------------------------------------------
 
-void Potentiometer::update(const uint16_t &new_value)
-{
+void Potentiometer::update(const uint16_t &new_value) {
     value = new_value;
     max = max(max, new_value);
     min = min(min, new_value);
@@ -134,8 +122,7 @@ void Potentiometer::update(const uint16_t &new_value)
 
 //--------------------------------------------------------------------------------------------------
 
-float Potentiometer::getNormalizedValue() const
-{
+float Potentiometer::getNormalizedValue() const {
     uint16_t range = max - min;
 
     return static_cast<float>(value) / range;
@@ -143,12 +130,11 @@ float Potentiometer::getNormalizedValue() const
 
 //--------------------------------------------------------------------------------------------------
 
-void Potentiometer::copyFrom(const Potentiometer &other)
-{
+void Potentiometer::copyFrom(const Potentiometer &other) {
     min = other.min;
     center = other.center;
     max = other.max;
     value = other.value;
 }
 
-} // namespace Funduino
+} // namespace funduino

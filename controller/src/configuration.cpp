@@ -3,8 +3,8 @@
 #include <PCA9685.h>
 
 #include "FunduinoJoystickShield/JoystickShield.h"
-#include "MovingEyes/Eyes.h"
-#include "MovingEyes/EyesMechanics.h"
+#include "MovingEyes/MovingEyes.h"
+#include "MovingEyes/TranslationTier.h"
 
 //--------------------------------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ PCA9685_ServoEvaluator getConfiguredServoEvaluator() { return SERVO_EVALUATOR_CO
 
 //--------------------------------------------------------------------------------------------------
 
-EyeMech::Limits getConfiguredLimits()
+eyes::translation::Limits getConfiguredLimits()
 {
     // manually measured min/max mechanical values without considering collisions.
     struct Constraints
@@ -46,7 +46,7 @@ EyeMech::Limits getConfiguredLimits()
         } elevation;
     } physical_limits{ PHYSICAL_LIMITS_DEGREE };
 
-    EyeMech::Limits l;
+    eyes::translation::Limits l;
 
     l.bearing = { physical_limits.bearing.min, physical_limits.bearing.max };
     l.elevation = { physical_limits.elevation.min, physical_limits.elevation.max };
@@ -60,7 +60,7 @@ EyeMech::Limits getConfiguredLimits()
 
 //--------------------------------------------------------------------------------------------------
 
-EyeMech::CompensationAngles getConfiguredCompensationAngles()
+eyes::translation::CompensationAngles getConfiguredCompensationAngles()
 {
     // EyeMech::CompensationAngles c;
 
@@ -84,12 +84,12 @@ EyeMech::CompensationAngles getConfiguredCompensationAngles()
 
 //--------------------------------------------------------------------------------------------------
 
-EyeMech::Constraints getConfiguredConstraints() { return { { { 10 } }, { { 10 } } }; }
+eyes::Constraints getConfiguredConstraints() { return { { { 10 } }, { { 10 } } }; }
 
 
 //--------------------------------------------------------------------------------------------------
 
-Funduino::ArduinoPinConfiguration getConfiguredJoystickShieldPinout()
+funduino::ArduinoPinConfiguration getConfiguredJoystickShieldPinout()
 {
     return JOYSTICK_SHIELD_PINS;
 }
