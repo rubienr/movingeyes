@@ -1,6 +1,9 @@
 #include "JoystickShield.h"
-#include "ShieldState.h"
+
 #include <Arduino.h>
+
+#include "../configuration.h"
+#include "ShieldState.h"
 
 namespace funduino {
 
@@ -56,12 +59,16 @@ bool JoystickShield::process() {
 
     // update state and trigger events
     if(has_changed) {
-        // ShieldStateHelper::println(state, "JoystickShield::process: old state ");
-        // ShieldStateHelper::println(new_state, "JoystickShield::process: new state ");
+#if defined(DEBUG_JOYSTICK_SHIELD)
+        ShieldStateHelper::println(state, "JoystickShield::process: old state ");
+        ShieldStateHelper::println(new_state, "JoystickShield::process: new state ");
+#endif
         if(event_receiver != nullptr) {
             static ShieldEvent event;
             updateEvent(event, new_state);
-            // ShieldEventHelper::println(event);
+#if defined(DEBUG_JOYSTICK_SHIELD)
+            ShieldEventHelper::println(event);
+#endif
             state = new_state;
 
             if(isCalibrated()) {

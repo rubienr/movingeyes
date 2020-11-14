@@ -2,6 +2,8 @@
 
 #include <HardwareSerial.h>
 
+#include "../configuration.h"
+
 //--------------------------------------------------------------------------------------------------
 
 namespace eyes {
@@ -19,15 +21,18 @@ int8_t LidConstraint::trim(const Position &upper_lid, const Position &lower_lid)
     int8_t new_lower_lid_value{ lower_lid.value };
 
     if((lower_lid.value + min_distance) >= upper_lid.value) {
+#if defined(DEBUG_MOVING_EYES_TIER)
         Serial.print("upper: ");
         Serial.print(upper_lid.value);
         Serial.print(" lower: ");
         Serial.print(lower_lid.value);
-
+#endif
         new_lower_lid_value = lower_lid.value + min_distance;
 
+#if defined(DEBUG_MOVING_EYES_TIER)
         Serial.print(" => lower: ");
         Serial.println(lower_lid.value);
+#endif
     }
 
     return new_lower_lid_value;
@@ -53,7 +58,10 @@ MovingEyes::MovingEyes(TwoWire &wire,
 
 void MovingEyes::setActuation(servo::EyesActuation &actuation) {
     trimToConstraints(actuation);
-    servo::EyesActuationHelper::println(actuation, "Eyes::setActuation: ");
+
+#if defined(DEBUG_MOVING_EYES_TIER)
+    servo::EyesActuationHelper::println(actuation, "MovingEyes::setActuation: ");
+#endif
     TranslationTier::setActuation(actuation);
 }
 

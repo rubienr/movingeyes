@@ -8,8 +8,7 @@
 
 //--------------------------------------------------------------------------------------------------
 
-namespace config
-{
+namespace config {
 
 //--------------------------------------------------------------------------------------------------
 
@@ -17,31 +16,23 @@ PCA9685_ServoEvaluator getConfiguredServoEvaluator() { return SERVO_EVALUATOR_CO
 
 //--------------------------------------------------------------------------------------------------
 
-eyes::translation::Limits getConfiguredLimits()
-{
+eyes::translation::Limits getConfiguredLimits() {
     // manually measured min/max mechanical values without considering collisions.
-    struct Constraints
-    {
-        struct
-        {
-            struct
-            {
-                struct
-                {
-                    struct
-                    {
+    struct Constraints {
+        struct {
+            struct {
+                struct {
+                    struct {
                         int8_t min, max;
                     };
                 } upper, lower;
             } left, right;
         };
 
-        struct
-        {
+        struct {
             int8_t min, max;
         } bearing;
-        struct
-        {
+        struct {
             int8_t min, max;
         } elevation;
     } physical_limits{ PHYSICAL_LIMITS_DEGREE };
@@ -60,8 +51,7 @@ eyes::translation::Limits getConfiguredLimits()
 
 //--------------------------------------------------------------------------------------------------
 
-eyes::translation::CompensationAngles getConfiguredCompensationAngles()
-{
+eyes::translation::CompensationAngles getConfiguredCompensationAngles() {
     // EyeMech::CompensationAngles c;
 
     // TODO
@@ -89,8 +79,7 @@ eyes::Constraints getConfiguredConstraints() { return { { { 10 } }, { { 10 } } }
 
 //--------------------------------------------------------------------------------------------------
 
-funduino::ArduinoPinConfiguration getConfiguredJoystickShieldPinout()
-{
+funduino::ArduinoPinConfiguration getConfiguredJoystickShieldPinout() {
     return JOYSTICK_SHIELD_PINS;
 }
 

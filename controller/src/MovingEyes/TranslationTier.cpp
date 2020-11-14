@@ -1,5 +1,6 @@
-
 #include "TranslationTier.h"
+
+#include "../configuration.h"
 #include "ServoTier.h"
 
 namespace eyes {
@@ -30,7 +31,10 @@ void TranslationTier::setActuation(servo::EyesActuation &eyes_actuation) {
     trimToMechanicalLimits(eyes_actuation);
     *static_cast<servo::BiasedEyesActuation *>(&raw_actuation_values) =
     toBiasedEyesActuation(eyes_actuation, raw_actuation_values);
-    // intern::RawActuationHelper::println(raw_actuation_values, "EyesMechanics::setActuation: ");
+#if defined(DEBUG_TRANSLATION_TIER)
+    eyes::servo::intern::RawActuationHelper::println(raw_actuation_values,
+                                                     "TranslationTier::setActuation: ");
+#endif
 }
 
 //--------------------------------------------------------------------------------------------------

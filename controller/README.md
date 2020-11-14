@@ -12,12 +12,15 @@ Source code for Printed Animatronic Eye Mechanism. Lets call it Monika!
 * 1x set of 3D printed eye mechanics + screws
 * optionally 2x WEMOS D1 Mini for wireless bridge in between the Joystick Shield and Arduino, and PCA8695 
 
-## Build & Flash
+## Build & Flash & Run
 ```
 cd base-board
 ./clion-init.sh
 pio run --target upload
 ```
+After power up a joystick calibration is required:
+ 1. turn the joystick to each axis' min/max limit 
+ 2. leave the joystick in its idle position 
 
 ## Pinout & Wiring
 ```

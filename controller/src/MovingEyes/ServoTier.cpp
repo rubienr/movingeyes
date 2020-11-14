@@ -3,6 +3,8 @@
 #include <HardwareSerial.h>
 #include <Wire.h>
 
+#include "../configuration.h"
+
 namespace eyes {
 namespace servo {
 
@@ -38,7 +40,9 @@ void ServoTier::process() {
     raw_actuation_values.channels_pwm[5] =
     servo_evaluator.pwmForAngle(raw_actuation_values.right.lid.lower.biasedValue());
 
-    intern::RawActuationHelper::println(raw_actuation_values, "MovingEyes::process: ");
+#if defined(DEBUG_SERVO_TIER)
+    intern::RawActuationHelper::println(raw_actuation_values, "ServoTier::process: ");
+#endif
 
     controller.setChannelsPWM(0, intern::RawActuation::CHANNELS_COUNT, raw_actuation_values.channels_pwm);
 }
@@ -149,26 +153,5 @@ void RawActuationHelper::println(const RawActuation &o, const String &prefix) {
 }
 
 } // namespace intern
-
-/*
-//--------------------------------------------------------------------------------------------------
-
-PCA9685_ServoEvaluator servoEvaluatorMg90sMicroservo()
-{
-    constexpr uint16_t min = 102, max = 512,
-                       center = static_cast<uint16_t>((static_cast<float>(max) - min) / 2 + min);
-
-    constexpr int16_t center_bias = +5;
-    constexpr int16_t min_bias = -7;
-    constexpr int16_t max_bias = +18;
-
-    return { min + min_bias, center + center_bias, max + max_bias };
-}
-
-//--------------------------------------------------------------------------------------------------
-
-PCA9685_ServoEvaluator servoEvaluatorDefault() { return {}; }
-*/
-
 } // namespace servo
 } // namespace eyes
