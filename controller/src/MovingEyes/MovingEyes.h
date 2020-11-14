@@ -1,6 +1,7 @@
 #pragma once
 
 #include <PCA9685.h>
+#include <WString.h>
 
 class TwoWire;
 

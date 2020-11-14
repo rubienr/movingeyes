@@ -15,7 +15,17 @@ struct Range
     int8_t min, max; // mandatory
     uint8_t range;   // can be computed with #autoComplete()
 
-    void autoComplete() { range = static_cast<uint8_t>(max(min, max) - min(min, max)); }
+    void autoComplete()
+    {
+        if(max < min)
+        {
+            int8_t t{ min };
+            min = max;
+            max = t;
+        }
+
+        range = static_cast<uint8_t>(max - min);
+    }
 };
 
 //--------------------------------------------------------------------------------------------------
@@ -48,20 +58,12 @@ struct Limits
 
     void autoComplete()
     {
-        elevation.autoComplete();
-        bearing.autoComplete();
         left.autoComplete();
         right.autoComplete();
+        elevation.autoComplete();
+        bearing.autoComplete();
     }
 };
-//--------------------------------------------------------------------------------------------------
-
-Limits mechanicLimitsDefault();
-
-//--------------------------------------------------------------------------------------------------
-
-Limits mechanicLimitsMovingEyes();
-
 //--------------------------------------------------------------------------------------------------
 
 struct CompensationAngles
@@ -80,13 +82,6 @@ struct CompensationAngles
     int8_t elevation;
     int8_t bearing;
 };
-//--------------------------------------------------------------------------------------------------
-
-CompensationAngles compensationAnglesDefault();
-
-//--------------------------------------------------------------------------------------------------
-
-CompensationAngles compensationAnglesMovingEyes();
 
 //--------------------------------------------------------------------------------------------------
 
@@ -130,14 +125,18 @@ protected:
     void trimToMechanicalLimits(EyesActuation &actuation);
 
     template <typename type_t> void trim(type_t &value, const Range &range);
-    BiasedEyesActuation &toBiasedEyesActuation(const EyesActuation &actuation_values, const intern::RawActuation &bias_values);
+    BiasedEyesActuation &toBiasedEyesActuation(const EyesActuation &actuation_values,
+                                               const intern::RawActuation &bias_values);
 };
 
 //--------------------------------------------------------------------------------------------------
 
 template <typename type_t> void EyesMechanics::trim(type_t &value, const Range &range)
 {
-    if(value < range.min) { value = range.min; }
+    if(value < range.min)
+    {
+        value = range.min;
+    }
     else if(value > range.max)
     {
         value = range.max;

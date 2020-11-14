@@ -29,30 +29,10 @@ struct ArduinoPinConfiguration
 
 //--------------------------------------------------------------------------------------------------
 
-constexpr ArduinoPinConfiguration leonardoPinout()
-{
-    return { { { 2, 3, 4, 5, 6, 7 }, { A0, A1, 8 } } };
-}
-
-//--------------------------------------------------------------------------------------------------
-
-/**
- * Pinout with A/B moved to D9/D10 to leave SDA/SCL untouched.
- * Leonardo compatible pinout with A/B moved to D9/D10 to leave D2/D3 free for SDA/SCL.
- * Needs removal of the respective pins (interrupt, unsolder) and reconnecting to D9/D10
- *
- */
-constexpr ArduinoPinConfiguration leonardoPinoutSerial()
-{
-    return { { { 9, 10, 4, 5, 6, 7 }, { A0, A1, 8 } } };
-}
-
-//--------------------------------------------------------------------------------------------------
-
 class JoystickShield
 {
 public:
-    explicit JoystickShield(const ArduinoPinConfiguration &io_pins = leonardoPinout());
+    explicit JoystickShield(const ArduinoPinConfiguration &io_pins);
 
     /**
      * Replaced the old receiver (if any) wit the new receiver.

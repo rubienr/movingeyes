@@ -1,47 +1,67 @@
-#include "FunduinoJoystickShield/JoystickShield.h"
-#include "MovingEyes/Eyes.h"
-#include "MovingEyes/MovingEyes.h"
+#include "configuration.h"
+
 #include <Arduino.h>
 #include <HardwareSerial.h>
 #include <MovingEyes/EyesMechanics.h>
-#include <MovingEyes/MovingEyes.h>
+#include <PCA9685.h>
 #include <Wire.h>
 #include <pinutils.h>
+
+#include "FunduinoJoystickShield/JoystickShield.h"
+#include "MovingEyes/Eyes.h"
+#include "MovingEyes/MovingEyes.h"
+
+//--------------------------------------------------------------------------------------------------
 
 using namespace Funduino;
 using namespace EyeMech;
 
 //--------------------------------------------------------------------------------------------------
-int8_t convertToDegree(const float &normalized, const Range &range);
+
+namespace
+{
+
+//--------------------------------------------------------------------------------------------------
+
+int8_t convertToDegree(const float &normalized, const Range &range)
+{
+    return static_cast<int8_t>(normalized * range.range + range.min);
+}
+
+} // namespace
 
 //--------------------------------------------------------------------------------------------------
 
 struct Resources : public EventReceiver
 {
-    struct EarlyInitializer
+    struct PreInit
     {
-        PCA9685_ServoEvaluator servo_evaluator{ servoEvaluatorMg90sMicroservo() };
-        Limits mechanic_limits{ mechanicLimitsMovingEyes() };
-        CompensationAngles compensation{ compensationAnglesMovingEyes() };
-        Constraints constraints{ constraintsDefault() };
-    } early_init;
+        PCA9685_ServoEvaluator servo_evaluator{ config::getConfiguredServoEvaluator() };
+        Limits mechanic_limits{ config::getConfiguredLimits() };
+        CompensationAngles compensation{ config::getConfiguredCompensationAngles() };
+        Constraints constraints{ config::getConfiguredConstraints() };
+    } pre_init;
 
-    //TogglePin led_x{ LED_BUILTIN_TX };
-    //TogglePin led_y{ LED_BUILTIN_RX };
+    // TogglePin led_x{ LED_BUILTIN_TX };
+    // TogglePin led_y{ LED_BUILTIN_RX };
 
-    JoystickShield input_device{ leonardoPinoutSerial() };
+    JoystickShield input_device{ config::getConfiguredJoystickShieldPinout() };
     Eyes eyes{ Wire,
-               early_init.constraints,
-               early_init.mechanic_limits,
-               early_init.compensation,
-               early_init.servo_evaluator,
+               pre_init.constraints,
+               pre_init.mechanic_limits,
+               pre_init.compensation,
+               pre_init.servo_evaluator,
                PCA9685_PhaseBalancer_Weaved,
                true };
 
     //----------------------------------------------------------------------------------------------
     void setup()
     {
+#ifdef ARDUINO_AVR_LEONARDO
         Serial.begin(230400);
+#elif defined(ARDUINO_AVR_NANO)
+        Serial.begin(57600);
+#endif
         while(!Serial)
             delay(10);
         Serial.print("\n\n\n");
@@ -50,6 +70,7 @@ struct Resources : public EventReceiver
         input_device.setup();
         eyes.setup();
         input_device.setEventReceiver(this);
+        Serial.println("Resources::setup: done");
     }
 
     //----------------------------------------------------------------------------------------------
@@ -116,11 +137,11 @@ struct Resources : public EventReceiver
 
                 actuation.bearing = convertToDegree(input_device.getJoystickData().x.getNormalizedValue(),
                                                     eyes.getMechanicLimits().bearing);
-                //led_x.toggle();
+                // led_x.toggle();
 
                 actuation.elevation = convertToDegree(input_device.getJoystickData().y.getNormalizedValue(),
                                                       eyes.getMechanicLimits().elevation);
-                //led_y.toggle();
+                // led_y.toggle();
                 consumed = true;
             }
             break;
@@ -166,10 +187,3 @@ void setup() { r.setup(); }
 //--------------------------------------------------------------------------------------------------
 
 void loop() { r.process(); }
-
-//--------------------------------------------------------------------------------------------------
-
-int8_t convertToDegree(const float &normalized, const Range &range)
-{
-    return static_cast<int8_t>(normalized * range.range + range.min);
-}

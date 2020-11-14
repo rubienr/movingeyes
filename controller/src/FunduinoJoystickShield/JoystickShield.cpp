@@ -59,7 +59,6 @@ bool JoystickShield::process()
     {
         // ShieldStateHelper::println(state, "JoystickShield::process: old state ");
         // ShieldStateHelper::println(new_state, "JoystickShield::process: new state ");
-
         if(event_receiver != nullptr)
         {
             static ShieldEvent event;

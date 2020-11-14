@@ -1,5 +1,7 @@
 #include "Eyes.h"
 
+#include <HardwareSerial.h>
+
 //--------------------------------------------------------------------------------------------------
 
 namespace EyeMech
@@ -37,7 +39,7 @@ int8_t LidConstraint::trim(const Position &upper_lid, const Position &lower_lid)
 
 //--------------------------------------------------------------------------------------------------
 
-LidConstraint::LidConstraint(int8_t min_distance) : min_distance(min_distance) {}
+LidConstraint::LidConstraint(int8_t min_distance) : min_distance{min_distance} {}
 
 //--------------------------------------------------------------------------------------------------
 
@@ -81,7 +83,4 @@ void Eyes::trimToConstraints(EyesActuation &constrained_actuation) const
 
 }
 
-//--------------------------------------------------------------------------------------------------
-
-Constraints constraintsDefault() { return { { { 10 } }, { { 10 } } }; }
 } // namespace EyeMech

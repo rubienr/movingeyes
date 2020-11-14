@@ -26,9 +26,9 @@ struct Constraint
 
 struct LidConstraint : public Constraint
 {
-    int8_t trim(const Position &upper_lid, const Position &lower_lid) const override;
-
     LidConstraint(int8_t min_distance);
+
+    int8_t trim(const Position &upper_lid, const Position &lower_lid) const override;
 
     int8_t min_distance;
 };
@@ -78,8 +78,5 @@ protected:
     Constraints constraints;
     void trimToConstraints(EyesActuation &constrained_actuation) const;
 };
-
-//--------------------------------------------------------------------------------------------------
-Constraints constraintsDefault();
 
 } // namespace EyeMech

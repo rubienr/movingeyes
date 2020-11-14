@@ -1,5 +1,6 @@
 #include "MovingEyes.h"
 
+#include <HardwareSerial.h>
 #include <Wire.h>
 
 namespace EyeMech
@@ -161,6 +162,7 @@ void RawActuationHelper::println(const RawActuation &o, const String &prefix)
 
 } // namespace intern
 
+/*
 //--------------------------------------------------------------------------------------------------
 
 PCA9685_ServoEvaluator servoEvaluatorMg90sMicroservo()
@@ -178,6 +180,6 @@ PCA9685_ServoEvaluator servoEvaluatorMg90sMicroservo()
 //--------------------------------------------------------------------------------------------------
 
 PCA9685_ServoEvaluator servoEvaluatorDefault() { return {}; }
-
+*/
 
 } // namespace EyeMech
